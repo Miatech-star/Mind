@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mia — Your mind, mapped</title>
+<meta property="og:title" content="Mia — Your mind, mapped">
+<meta property="og:description" content="Talk to Mia. See what's really going on inside.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'Utopia Std Display';src:url('/fonts/UtopiaStdDisplay.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Utopia Std Display';src:url('/fonts/UtopiaStdDisplay-Italic.woff2') format('woff2');font-weight:400;font-style:italic;font-display:swap}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f3f0;
+  --fg:#000;
+  --muted:rgba(100,80,120,.45);
+  --ft:'Utopia Std Display','Palatino Linotype','Book Antiqua',Georgia,serif;
+  --fb:'Inter',system-ui,-apple-system,sans-serif;
+}
+html,body{width:100%;height:100%;background:var(--bg);font-family:var(--fb);color:var(--fg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ── Blobs ── */
+.blob{position:fixed;border-radius:50%;filter:blur(60px);opacity:.45;pointer-events:none;z-index:0}
+.blob-1{width:180px;height:180px;background:radial-gradient(circle,rgba(200,160,240,.7),rgba(180,130,220,.3),transparent);top:40px;left:50%;transform:translateX(-50%);animation:float1 12s ease-in-out infinite}
+.blob-2{width:120px;height:120px;background:radial-gradient(circle,rgba(190,150,230,.6),rgba(170,120,210,.2),transparent);bottom:30%;left:8%;animation:float2 15s ease-in-out infinite}
+.blob-3{width:280px;height:280px;background:radial-gradient(circle,rgba(195,155,235,.55),rgba(175,125,215,.25),transparent);top:35%;right:-40px;animation:float3 18s ease-in-out infinite}
+.blob-4{width:90px;height:90px;background:radial-gradient(circle,rgba(185,145,225,.5),rgba(165,115,205,.2),transparent);bottom:15%;left:45%;animation:float4 10s ease-in-out infinite}
+.blob-5{width:60px;height:60px;background:radial-gradient(circle,rgba(200,160,240,.5),rgba(180,130,220,.2),transparent);top:18%;left:15%;animation:float2 13s ease-in-out infinite reverse}
+
+@keyframes float1{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(20px)}}
+@keyframes float2{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-15px) scale(1.05)}}
+@keyframes float3{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(12px) scale(1.03)}}
+@keyframes float4{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* ── Layout ── */
+.page{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 24px;
+  text-align:center;
+}
+
+.title{
+  font-family:var(--ft);
+  font-size:clamp(42px,8vw,72px);
+  font-weight:400;
+  font-style:italic;
+  letter-spacing:-0.03em;
+  color:var(--fg);
+  margin-bottom:12px;
+  line-height:1.1;
+}
+
+.subtitle{
+  font-family:var(--fb);
+  font-size:clamp(14px,2vw,17px);
+  font-weight:400;
+  letter-spacing:-0.03em;
+  color:rgba(0,0,0,.7);
+  margin-bottom:28px;
+  max-width:380px;
+  line-height:1.5;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 20px;
+  background:#000;
+  color:#fff;
+  border:none;
+  border-radius:100px;
+  font-family:var(--fb);
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:-0.03em;
+  text-decoration:none;
+  cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease;
+  box-shadow:0 6px 30px rgba(0,0,0,.15);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,0,0,.22)}
+.btn:active{transform:translateY(0)}
+
+.link{
+  display:inline-block;
+  margin-top:14px;
+  font-family:var(--fb);
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:-0.03em;
+  color:var(--fg);
+  opacity:.5;
+  text-decoration:underline;
+  text-underline-offset:4px;
+  text-decoration-thickness:1px;
+  transition:opacity .2s ease;
+}
+.link:hover{opacity:.35}
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+<div class="blob blob-4"></div>
+<div class="blob blob-5"></div>
+
+<div class="page">
+  <h1 class="title">Welcome to Mia</h1>
+  <p class="subtitle"><strong>Find your patterns and build healthy relationships.</strong></p>
+  <a class="btn" href="https://chatgpt.com/g/g-l38NcMokB-mia-ai-your-friend-and-self-discovery-coach" target="_blank" rel="noopener">Talk to Mia</a>
+  <a class="link" href="https://chatgpt.com/g/g-68a7777d81bc8191a761065ebc788aee-mia-ai-mind-map" target="_blank" rel="noopener">Take the test</a>
+</div>
+
+</body>
+</html>
