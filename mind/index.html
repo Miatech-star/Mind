@@ -30,23 +30,25 @@ html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-famil
 .pip-s{background:conic-gradient(from 0deg,#44cc88,#88ddaa,#44cc88);box-shadow:0 0 6px rgba(68,204,136,.5)}
 @keyframes gp{0%,100%{box-shadow:0 0 6px rgba(136,0,204,.4)}50%{box-shadow:0 0 14px rgba(136,0,204,.65)}}
 #nav{position:fixed;top:0;left:0;right:0;z-index:15;padding:72px 30px 22px;display:flex;justify-content:center;align-items:center;pointer-events:none;opacity:0;transition:opacity .8s ease .4s}#nav.show{opacity:1}
+#back{position:fixed;top:28px;left:28px;z-index:15;font-family:var(--fb);font-size:22px;font-weight:100;letter-spacing:-0.03em;color:#000;opacity:.4;text-decoration:none;transition:opacity .2s;line-height:1}#back:hover{opacity:.7}
 .nu{font-family:var(--ft);font-size:28px;font-weight:400;font-style:italic;letter-spacing:-0.03em;color:#000}
-#hint{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);font-family:var(--fb);font-size:9.5px;letter-spacing:-0.03em;text-transform:uppercase;color:var(--fg-muted);pointer-events:none;z-index:15;opacity:0;transition:opacity 1.5s}#hint.show{opacity:1}#hint.gone{opacity:0}
-#cta{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;flex-direction:column;align-items:center;padding:0 24px 32px;opacity:0;transform:translateY(20px);transition:opacity .8s ease 1s,transform .8s ease 1s;pointer-events:none}#cta.show{opacity:1;transform:translateY(0);pointer-events:auto}
-.cta-btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 36px;background:#000;color:#fff;border:none;border-radius:100px;font-family:var(--fb);font-size:13px;font-weight:600;letter-spacing:-0.03em;text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 6px 30px rgba(0,0,0,.18)}.cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,0,0,.25)}.cta-btn:active{transform:translateY(0)}
-.cta-sub{font-family:var(--fb);font-size:10px;font-weight:400;letter-spacing:-0.03em;text-transform:uppercase;color:var(--fg-muted);margin-top:10px}
+#hint{position:fixed;bottom:130px;left:50%;transform:translateX(-50%);font-family:var(--fb);font-size:9.5px;letter-spacing:-0.03em;text-transform:uppercase;color:var(--fg-muted);pointer-events:none;z-index:15;opacity:0;transition:opacity 1.5s}#hint.show{opacity:1}#hint.gone{opacity:0}
+#cta{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 24px 52px;opacity:0;transform:translateY(20px);transition:opacity .8s ease 1s,transform .8s ease 1s;pointer-events:none}#cta.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.cta-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;background:#000;color:#fff;border:none;border-radius:100px;font-family:var(--fb);font-size:13px;font-weight:600;letter-spacing:-0.03em;text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 6px 30px rgba(0,0,0,.18)}.cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,0,0,.25)}.cta-btn:active{transform:translateY(0)}
+.cta-link{font-family:var(--fb);font-size:12px;font-weight:700;letter-spacing:-0.03em;color:#000;opacity:.5;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px;transition:opacity .2s}.cta-link:hover{opacity:.35}
 #ld{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100;transition:opacity .7s}#ld.done{opacity:0;pointer-events:none}
 .lr{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(160,80,200,.12);border-top-color:#CC6010;border-right-color:#8800CC;animation:sp 1.1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.lt{font-family:var(--fb);font-size:9.5px;font-weight:500;letter-spacing:-0.03em;text-transform:uppercase;color:var(--fg-muted)}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<a id="back" href="https://mind-eight-rose.vercel.app">&#8249;</a>
 <div id="lr"></div>
 <div id="nav"><span class="nu" id="nu"></span></div>
 <div id="hint">Drag to rotate &middot; Scroll to zoom</div>
 <div id="cta">
-  <a class="cta-btn" href="https://apps.apple.com/app/apple-store/id6743808070?pt=127721921&ct=Mind%20map&mt=8" target="_blank" rel="noopener">Download Mia app to Unlock your map</a>
-  <span class="cta-sub">Your mind runs on patterns — see them all, then change them</span>
+  <a class="cta-btn" href="https://apps.apple.com/app/apple-store/id6743808070?pt=127721921&ct=Mind%20map&mt=8" target="_blank" rel="noopener">Download Mia App</a>
+  <a class="cta-link" href="#" target="_blank" rel="noopener">Share the map with Mia App</a>
 </div>
 <div id="ld"><div class="lr"></div><span class="lt">Mapping your mind</span></div>
 <script>
@@ -58,7 +60,7 @@ var XLINKS = [];
 var IDS =     ['s','p1','p2','p3','a','b','c','d','e','f','g','h','i'];
 var PARENTS = [null,'s','s','s','p1','p1','p1','p2','p2','p2','p3','p3','p3'];
 var DEPTHS =  [0,1,1,1,2,2,2,2,2,2,2,2,2];
-var BLUR =    ['p3','g','h','i','b','d'];
+var BLUR =    ['b','d','g','h','i'];
 
 // ── READ DATA FROM URL ──
 // Tries: ?m=  then #
