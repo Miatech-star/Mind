@@ -21,20 +21,11 @@
   --ft:'Utopia Std Display','Palatino Linotype','Book Antiqua',Georgia,serif;
   --fb:'Inter',system-ui,-apple-system,sans-serif;
 }
-html,body{width:100%;height:100%;background:var(--bg);font-family:var(--fb);color:var(--fg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html,body{width:100%;height:100%;background:var(--bg);font-family:var(--fb);color:var(--fg);-webkit-font-smoothing:antialiased;overflow:hidden}
 
-/* ── Blobs ── */
-.blob{position:fixed;border-radius:50%;filter:blur(60px);opacity:.45;pointer-events:none;z-index:0}
-.blob-1{width:180px;height:180px;background:radial-gradient(circle,rgba(200,160,240,.7),rgba(180,130,220,.3),transparent);top:40px;left:50%;transform:translateX(-50%);animation:float1 12s ease-in-out infinite}
-.blob-2{width:120px;height:120px;background:radial-gradient(circle,rgba(190,150,230,.6),rgba(170,120,210,.2),transparent);bottom:30%;left:8%;animation:float2 15s ease-in-out infinite}
-.blob-3{width:280px;height:280px;background:radial-gradient(circle,rgba(195,155,235,.55),rgba(175,125,215,.25),transparent);top:35%;right:-40px;animation:float3 18s ease-in-out infinite}
-.blob-4{width:90px;height:90px;background:radial-gradient(circle,rgba(185,145,225,.5),rgba(165,115,205,.2),transparent);bottom:15%;left:45%;animation:float4 10s ease-in-out infinite}
-.blob-5{width:60px;height:60px;background:radial-gradient(circle,rgba(200,160,240,.5),rgba(180,130,220,.2),transparent);top:18%;left:15%;animation:float2 13s ease-in-out infinite reverse}
-
-@keyframes float1{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(20px)}}
-@keyframes float2{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-15px) scale(1.05)}}
-@keyframes float3{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(12px) scale(1.03)}}
-@keyframes float4{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+/* ── Spline background ── */
+#spline-bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+#spline-bg iframe{width:100%;height:100%;border:none}
 
 /* ── Layout ── */
 .page{
@@ -108,11 +99,9 @@ html,body{width:100%;height:100%;background:var(--bg);font-family:var(--fb);colo
 </head>
 <body>
 
-<div class="blob blob-1"></div>
-<div class="blob blob-2"></div>
-<div class="blob blob-3"></div>
-<div class="blob blob-4"></div>
-<div class="blob blob-5"></div>
+<div id="spline-bg">
+  <iframe src='https://my.spline.design/miaiicopy-81yJeISAaR3fducIVXs41NZ5/' loading='lazy'></iframe>
+</div>
 
 <div class="page">
   <h1 class="title">Welcome to Mia</h1>
