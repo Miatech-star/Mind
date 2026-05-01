@@ -1,0 +1,351 @@
+/* ============================================================
+   /addiction-v2/ — visual refresh.
+   Loaded AFTER /addiction/styles.css, so source order wins.
+
+   What this file changes:
+     - The radial gradient is repainted as a soft rose/cream
+       three-stop instead of the deep blue two-stop of v1.
+     - Anything that was white-on-blue in v1 (titles, ledes,
+       eyebrows, question text, loading screen, etc.) becomes
+       ink-on-light, with no text-shadow.
+     - The primary CTA (Continue, Get started, etc.) becomes
+       solid black-on-white.
+     - The final "Download the app" CTA on the trial screen
+       stays the original blue — explicit exception.
+
+   What this file deliberately does NOT change:
+     - Layout, spacing, animations, screen flow.
+     - JS / API / state / fonts.
+     - Choice cards, consent box, field focus rings — those
+       still pick up --primary (blue) for selected states,
+       which reads as a small accent on the rose theme.
+   ============================================================ */
+
+/* =========================================================
+   Background — three-stop rose/cream radial.
+   ========================================================= */
+.hero-glow {
+  background: radial-gradient(
+    circle at 50% 50%,
+    #BA8499 5%,
+    #EA8787 16%,
+    #FDFDFD 100%
+  );
+}
+
+/* =========================================================
+   Text — anything that was white in v1 becomes dark.
+   The dark backgrounds are gone, so no text-shadow either.
+   ========================================================= */
+
+/* Welcome hero (the only place where these specific selectors
+   are forced to white in the base sheet). */
+.welcome-eyebrow,
+.welcome-title { color: var(--ink); }
+.welcome-sub   { color: var(--ink-2); }
+
+/* Body-state-driven white text on the questionnaire screens. */
+body[data-bg-state^="top"] .title,
+body[data-bg-state^="top"] .lede,
+body[data-bg-state^="top"] .eyebrow,
+body[data-bg-state^="top"] .cost-helper,
+body[data-bg-state^="top"] .intro-sub,
+body[data-bg-state^="top"] .intro-disclaimer {
+  color: var(--ink);
+  text-shadow: none;
+}
+/* Soften ledes + sub copy back to muted ink, not full black. */
+body[data-bg-state^="top"] .lede,
+body[data-bg-state^="top"] .intro-sub,
+body[data-bg-state^="top"] .intro-disclaimer,
+body[data-bg-state^="top"] .cost-helper {
+  color: var(--ink-2);
+}
+
+/* Adaptive question screen. */
+.q-eyebrow {
+  color: var(--ink-3);
+  text-shadow: none;
+}
+.q-text {
+  color: var(--ink);
+  text-shadow: none;
+}
+.q-loading {
+  color: rgba(14, 14, 18, 0.65);
+}
+
+/* =========================================================
+   Loading screen — ring + label + status + checks all dark.
+   ========================================================= */
+.loading-ring .track { stroke: rgba(14, 14, 18, 0.10); }
+.loading-ring .fill {
+  stroke: var(--primary);            /* keep the brand blue ring */
+  filter: drop-shadow(0 4px 14px rgba(0, 84, 255, 0.30));
+}
+.loading-ring-label    { color: var(--ink); }
+.loading-status .step  { color: var(--ink); }
+.loading-status .sub   { color: var(--ink-3); }
+.loading-checks li     { color: var(--ink-3); }
+.loading-checks li.done { color: var(--ink); }
+.loading-checks .check {
+  border-color: rgba(14, 14, 18, 0.18);
+}
+.loading-checks li.done .check {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.loading-checks .check svg { color: #fff; }
+
+/* =========================================================
+   Buttons — primary and welcome both go black.
+   The final CTA on the trial screen is the explicit exception
+   and keeps the original blue, scoped via [data-screen="trial"].
+   ========================================================= */
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(14, 14, 18, 0.22);
+}
+.btn-primary:hover  { background: #1F1F26; }
+.btn-primary:active { transform: scale(0.985); }
+.btn-primary:disabled {
+  background: #E6E4EB;
+  color: var(--ink-3);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* The welcome CTA in v1 used .btn-white. In v2 it goes black too
+   for consistency with all other primary actions in the flow. */
+.btn-white {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(14, 14, 18, 0.22);
+}
+.btn-white:hover  { background: #1F1F26; }
+.btn-white:active { transform: scale(0.985); }
+
+/* Exception: the final "Download the app" CTA on the trial screen
+   stays the original blue. Higher specificity than .btn-primary
+   above via the attribute prefix. */
+[data-screen="trial"] .btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 8px 20px var(--primary-shadow);
+}
+[data-screen="trial"] .btn-primary:hover {
+  background: var(--primary-press);
+}
+
+/* =========================================================
+   Layout — small refinements for v2.
+   ========================================================= */
+
+/* Pull the primary buttons (Start your journey, Continue, etc.) a
+   bit further from the bottom edge of the frame. Base CSS used 6 px
+   which read as too tight on mobile; this gives a comfortable
+   bottom margin without breaking the body's 100 px reserved space. */
+.screen-footer {
+  padding-bottom: 28px;
+}
+
+/* While the radial sits at the top of the frame (any "top*" state),
+   keep it at 50 % opacity. It becomes a soft presence behind the
+   content rather than competing with the questions. The radial is
+   still fully opaque on welcome, and fully hidden on the dashboard
+   group (those states use opacity: 0 from the base CSS). */
+body[data-bg-state="top"] .hero-glow,
+body[data-bg-state="top-high"] .hero-glow,
+body[data-bg-state="top-dim"] .hero-glow {
+  opacity: 0.5;
+}
+
+/* =========================================================
+   Intro-voice screen (v2 only).
+   Orb is centered horizontally, slightly above true vertical
+   center per the Figma spec. Text sits below it in a fixed-size
+   container, so phrases never push each other down.
+   ========================================================= */
+.iv-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The orb iframe — non-interactive, slightly larger than the Figma's
+   408 px (per direction to "make it slightly larger"). The default
+   transform includes an explicit `scale(1)` so the .is-leaving state
+   below can interpolate the scale value cleanly. */
+.iv-orb {
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 28px);
+  transform: translate(-50%, -50%) scale(1);
+  width: 460px;
+  max-width: 96%;
+  aspect-ratio: 1 / 1;
+  border: 0;
+  background: transparent;
+  /* Belt-and-braces: the iframe itself never receives pointer events
+     so even if the inner page failed to disable them, the user can't
+     interact with the orb. */
+  pointer-events: none;
+  /* Default short transitions so unrelated state changes don't lag. */
+  transition:
+    top 260ms linear,
+    opacity 260ms linear,
+    transform 260ms linear;
+}
+/* During the morph-out, the orb travels from its position down to
+   the radial's welcome resting place AND scales up to match the
+   radial's full pixel size AND fades out — all in lockstep with
+   the .hero-glow's transition. Same easing + duration on both, so
+   they share a path and a size at every frame.
+   The radial and orb both end at ~814 px wide (orb 460 × 1.77 ≈
+   814; radial 814 × 1.0 = 814) at the welcome position. */
+.screen[data-screen="intro-voice"].is-leaving .iv-orb {
+  top: 95%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.77);
+  transition:
+    top 1400ms cubic-bezier(.55, 0, .25, 1),
+    opacity 1400ms cubic-bezier(.55, 0, .25, 1),
+    transform 1400ms cubic-bezier(.55, 0, .25, 1);
+}
+
+/* Text container has a fixed height so subsequent phrases don't
+   shift the layout downward. Phrases inside are absolutely
+   positioned and overlap each other; only one is visible at a time.
+   Position is "a bit higher than before" — closer to the orb. */
+.iv-text {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + min(22vh, 200px));
+  transform: translate(-50%, 0);
+  width: 305px;
+  max-width: 86%;
+  height: 96px;          /* fits up to ~3 lines at 24px / 1.3 lh */
+  text-align: center;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #000;
+}
+.iv-phrase {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  /* Phrase as a whole eases out when the next phrase is about to
+     appear, so consecutive phrases never pile up — they overlap
+     in the same spot and only the active one is visible. */
+  transition: opacity 360ms cubic-bezier(.4, 0, .2, 1);
+}
+.iv-phrase.is-active { opacity: 1; }
+.iv-word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(2px);
+  transition:
+    opacity 520ms cubic-bezier(.4, 0, .2, 1),
+    filter 520ms cubic-bezier(.4, 0, .2, 1),
+    transform 520ms cubic-bezier(.4, 0, .2, 1);
+  white-space: pre-wrap;
+}
+.iv-word.is-revealed {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+/* Subtle italic invitation. Sits ~half the previous gap below the
+   orb's visible aura — close enough that the prompt and orb read
+   as a single unit. Slowly pulses in color so it feels like a
+   gentle cue rather than a button. */
+.iv-prompt {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + min(20vh, 178px));
+  transform: translate(-50%, 0);
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: rgba(14, 14, 18, 0.55);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(.4, 0, .2, 1);
+  pointer-events: none;
+  animation: iv-prompt-pulse 2.6s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+.iv-prompt.is-shown { opacity: 1; }
+@keyframes iv-prompt-pulse {
+  0%, 100% { color: rgba(14, 14, 18, 0.45); }
+  50%      { color: rgba(14, 14, 18, 0.85); }
+}
+
+/* The whole stage is the tap target when the prompt is visible,
+   so the user can tap anywhere — not just on a small button. */
+.iv-stage[data-tappable="true"] {
+  cursor: pointer;
+}
+
+/* Whole intro screen fades out on transition. The orb has its own
+   fade timing above so it can disappear independently from the text. */
+.screen[data-screen="intro-voice"] {
+  transition: opacity 420ms cubic-bezier(.4, 0, .2, 1);
+}
+.screen[data-screen="intro-voice"].is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-word, .iv-phrase, .iv-orb, .iv-prompt,
+  .screen[data-screen="intro-voice"] { transition: none; animation: none; }
+}
+
+/* ---------------------------------------------------------
+   Morph: orb-to-radial transition (v2 only).
+   The radial coexists with the orb during the morph. Both
+   start at the same position (orb's center) and the same
+   visible size, then both animate in lockstep down to the
+   welcome-radial position. While they travel together, the
+   radial fades from transparent → opaque and the orb fades
+   from opaque → transparent. To the eye, it reads as one
+   element transforming, not a swap.
+   ---------------------------------------------------------
+   Math notes:
+     - Orb iframe is 460 px wide.
+     - Radial natural width is 185% of frame (~814 px on a
+       440-px frame). 460 / 814 ≈ 0.565 — so the radial,
+       scaled to 0.565, matches the orb's visible footprint
+       at the start of the morph.
+   --------------------------------------------------------- */
+body[data-bg-state="morphing"] .hero-glow {
+  /* Snap to orb position + orb-matching scale + transparent.
+     `transition: none` ensures we don't slide in from above. */
+  top: calc(50% - 28px);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.565);
+  transition: none;
+}
+/* When transitioning INTO welcome, both top, opacity, and the
+   transform (scale + translate) animate together with the same
+   easing curve. The orb iframe's CSS uses identical timing in
+   .is-leaving so the two visuals read as one. */
+body[data-bg-state="welcome"] .hero-glow {
+  transition:
+    top 1400ms cubic-bezier(.55, 0, .25, 1),
+    opacity 1400ms cubic-bezier(.55, 0, .25, 1),
+    transform 1400ms cubic-bezier(.55, 0, .25, 1);
+}

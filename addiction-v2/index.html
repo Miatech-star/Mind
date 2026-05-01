@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#F4F4F6">
+<meta name="robots" content="noindex, nofollow">
+<title>Mia AI — Patterns Check (v2)</title>
+<meta property="og:title" content="Mia — A patterns check">
+<meta property="og:description" content="A short, gentle self-reflection. Not a clinical assessment.">
+<link rel="icon" href="../favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+
+<!-- Critical inline CSS — guarantees screens are hidden and the page
+     is sane even before (or if) the external stylesheet loads.
+     Without this, opening via file:// can briefly render every
+     screen at once. -->
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #F4F4F6;
+    color: #0E0E12;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  [hidden] { display: none !important; }
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; }
+</style>
+
+<!-- v1 stylesheet provides the full base (layout, components, animations).
+     The v2 override below repaints colors only — gradient, button bg,
+     text colors. Loading both as separate <link> tags rather than @import
+     so they fetch in parallel; source order gives the override precedence. -->
+<link rel="stylesheet" href="../addiction/styles.css">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<!-- bg-state starts as `hidden` so the rose radial is faded out for the
+     intro-voice screen. intro-voice.js flips this to `welcome` when it
+     transitions to the welcome screen, which lets the radial slide in
+     from the bottom in step with the screen change. -->
+<body data-bg-state="hidden">
+
+<div class="app">
+  <div class="frame">
+    <!-- Background lives INSIDE the frame so the radial is clipped
+         by the frame's overflow:hidden on desktop. On mobile the
+         frame fills the viewport, so it behaves the same way. -->
+    <div class="bg-stage" aria-hidden="true">
+      <div class="hero-glow"></div>
+    </div>
+
+    <header class="topbar">
+      <button class="icon-btn" id="backBtn" aria-label="Back" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
+      <div class="progress" id="progress" aria-hidden="true"></div>
+    </header>
+
+    <main class="screens" id="screens">
+
+      <!-- ============== 0. INTRO-VOICE (v2 only) ==============
+           Plays a short Mia greeting over an animated orb, with the
+           script revealed word by word in time with the audio.
+           After the audio ends + brief pause, intro-voice.js swaps
+           this screen out and reveals welcome below. -->
+      <section class="screen active" data-screen="intro-voice">
+        <div class="iv-stage">
+          <!-- The orb runs in its own iframe to keep its three.js
+               module + canvas isolated from the rest of the page. -->
+          <iframe
+            id="orbFrame"
+            class="iv-orb"
+            src="./orb.html"
+            title="Mia"
+            tabindex="-1"
+            aria-hidden="true"
+            scrolling="no"
+            frameborder="0"></iframe>
+          <!-- One container per phrase, each populated with word-spans.
+               Hidden by default — intro-voice.js shows + animates one at a time. -->
+          <div class="iv-text" id="ivText" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- ============== 1. WELCOME ============== -->
+      <section class="screen" data-screen="welcome">
+        <div class="screen-body welcome-body">
+          <!-- Substance carousel: rotates through the full list, infinite loop.
+               Decorative — context for what's coming next, not a selection. -->
+          <div class="welcome-carousel" aria-hidden="true">
+            <div class="welcome-carousel-track" id="welcomeCarousel"></div>
+          </div>
+          <!-- Hero text block, white-on-blue per design -->
+          <div class="welcome-hero">
+            <p class="welcome-eyebrow">Take this 5-minute test.</p>
+            <p class="welcome-stars" aria-label="Five stars">★ ★ ★ ★ ★</p>
+            <h1 class="welcome-title">Understand how critical is your addiction</h1>
+            <p class="welcome-sub">Based on DSM-5-inspired signals — not a clinical diagnosis.</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-white" id="welcomeNext">Start your journey</button>
+        </div>
+      </section>
+
+      <!-- ============== 2. NAME ============== -->
+      <section class="screen" data-screen="name">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title">What should we call you?</h2>
+          <p class="lede">We’ll use your name to make this space feel like yours.</p>
+          <input class="field" type="text" id="nameInput" placeholder="Your name" autocomplete="given-name" enterkeyhint="next" maxlength="60">
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="nameNext" disabled>Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 3. SUBSTANCE ============== -->
+      <section class="screen" data-screen="substance">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title" id="substanceTitle">What are you working to overcome?</h2>
+          <p class="lede">Pick the one that fits best — you can change it later.</p>
+          <div class="choices quit-list" id="substanceList" role="radiogroup" aria-label="Choose what to overcome"></div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="substanceNext" disabled>Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 4. CRISIS (self-harm path) ============== -->
+      <section class="screen" data-screen="crisis">
+        <div class="screen-body">
+          <div class="pad-top-sm"></div>
+          <div class="crisis-stage">
+            <p class="crisis-eyebrow">Before we go further</p>
+            <h2 class="crisis-title" id="crisisTitle">We want to make sure you’re safe.</h2>
+            <p class="crisis-body">If you’re thinking about harming yourself or are in immediate danger, please reach out to a person right now. A patterns check isn’t the right tool for what you’re carrying — a human is.</p>
+            <div class="crisis-resources">
+              <div class="crisis-resource">
+                <div class="crisis-resource-label">United States</div>
+                <div class="crisis-resource-value"><a href="tel:988">988</a> — Suicide &amp; Crisis Lifeline</div>
+                <div class="crisis-resource-detail">Call or text 988. Free, confidential, 24/7.</div>
+              </div>
+              <div class="crisis-resource">
+                <div class="crisis-resource-label">United Kingdom &amp; Ireland</div>
+                <div class="crisis-resource-value"><a href="tel:116123">116 123</a> — Samaritans</div>
+                <div class="crisis-resource-detail">Free to call, day or night.</div>
+              </div>
+              <div class="crisis-resource">
+                <div class="crisis-resource-label">International</div>
+                <div class="crisis-resource-value"><a href="https://findahelpline.com/" target="_blank" rel="noopener">findahelpline.com</a></div>
+                <div class="crisis-resource-detail">Local crisis lines for most countries.</div>
+              </div>
+              <div class="crisis-resource">
+                <div class="crisis-resource-label">Emergency</div>
+                <div class="crisis-resource-value">Call your local emergency number.</div>
+                <div class="crisis-resource-detail">If you’re in immediate physical danger, please don’t wait.</div>
+              </div>
+            </div>
+            <p class="crisis-body" style="margin-top: 6px;">Mia isn’t a crisis service or a clinician. When you’re ready, we’ll be here.</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-ghost center" id="crisisBack">Pick something else</button>
+        </div>
+      </section>
+
+      <!-- ============== 5. WHEN ============== -->
+      <section class="screen" data-screen="when">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title">When did you take your first step?</h2>
+          <p class="lede">If you haven’t yet, that’s okay too — we can start the clock today.</p>
+          <div class="date-card">
+            <div class="date-status" id="dateStatus">Just now</div>
+            <div class="date-row">
+              <input type="date" id="quitDate">
+              <input type="time" id="quitTime">
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="whenNext">Continue</button>
+          <button class="btn btn-ghost center" id="haventStarted">I haven’t started yet</button>
+        </div>
+      </section>
+
+      <!-- ============== 6. COST ============== -->
+      <section class="screen" data-screen="cost">
+        <div class="screen-body is-centered">
+          <p class="eyebrow">Cost analysis</p>
+          <h2 class="title">How much do you spend on this per week?</h2>
+          <p class="lede">A rough estimate is fine — we’ll do the math.</p>
+
+          <div class="cost-stage">
+            <div class="cost-amount has-value" id="costDisplay">
+              <span class="currency">$</span>
+              <input class="cost-input" id="costInput" type="text" inputmode="decimal" value="0" aria-label="Weekly spend" enterkeyhint="done">
+              <span class="cost-measure" id="costMeasure">0</span>
+            </div>
+            <div class="cost-edit-hint" id="costHint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+              </svg>
+              Tap to edit
+            </div>
+            <div class="preset-row" id="presetRow">
+              <button class="preset" data-amount="20">$20</button>
+              <button class="preset" data-amount="50">$50</button>
+              <button class="preset" data-amount="100">$100</button>
+              <button class="preset" data-amount="200">$200</button>
+            </div>
+            <p class="cost-helper">Per week</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="costNext" disabled>See what you’ll save</button>
+        </div>
+      </section>
+
+      <!-- ============== 7. SAVINGS ============== -->
+      <section class="screen" data-screen="savings">
+        <div class="screen-body is-centered">
+          <div class="reveal">
+            <p class="reveal-eyebrow">You’re saving</p>
+            <div class="reveal-amount" id="savingsAmount">$0</div>
+            <p class="reveal-tail" id="savingsTail">a month by stepping back. Money back in your pocket, and a future you’ll feel.</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="savingsNext">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 8. CONSENT ============== -->
+      <section class="screen" data-screen="consent">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title" id="consentTitle">One quick thing.</h2>
+          <p class="lede">Mia will use your answers to generate a private reflection — just for you.</p>
+
+          <div class="trust-pills" aria-hidden="true">
+            <span class="trust-pill"><span class="dot"></span>Just for you</span>
+            <span class="trust-pill"><span class="dot"></span>Not stored</span>
+            <span class="trust-pill"><span class="dot"></span>Not a diagnosis</span>
+          </div>
+
+          <button class="consent-checkbox" id="consentBox" type="button" role="checkbox" aria-checked="false">
+            <span class="box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </span>
+            <span>Sounds good — let’s do this.</span>
+          </button>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="consentNext" disabled>Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 9. INTRO ============== -->
+      <section class="screen" data-screen="intro">
+        <div class="screen-body is-centered">
+          <div class="intro-stage">
+            <div class="intro-copy">
+              <h2 class="title" id="introTitle">Let’s understand the pattern behind your alcohol use.</h2>
+              <p class="intro-sub">A short, adaptive self-reflection — built around your answers.</p>
+              <a class="dsm-pill" href="https://www.psychiatry.org/psychiatrists/practice/dsm" target="_blank" rel="noopener">
+                DSM-5
+                <svg class="dsm-pill-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </a>
+            </div>
+            <div class="intro-emoji" aria-hidden="true">
+              <span class="intro-emoji-pulse"></span>
+              <span class="intro-emoji-pulse p2"></span>
+              <span class="intro-emoji-icon" id="introEmoji">🎯</span>
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="introNext">Start</button>
+        </div>
+      </section>
+
+      <!-- ============== 10. ASSESSMENT (adaptive) ============== -->
+      <section class="screen" data-screen="assessment">
+        <div class="screen-body is-centered q-body">
+          <p class="q-eyebrow" id="qProgressLabel">Question 1</p>
+          <div class="q-stage is-loading" id="qStage">
+            <div class="q-loading" id="qLoading" aria-hidden="true">
+              <span class="q-loading-dot"></span>
+              <span class="q-loading-text" id="qLoadingText">Reading the pattern…</span>
+            </div>
+            <h2 class="q-text" id="qText"></h2>
+            <div class="q-options" id="qOptions" role="radiogroup"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== 11. BUILDING / LOADING ============== -->
+      <section class="screen" data-screen="building">
+        <div class="screen-body is-centered">
+          <div class="loading-stage">
+            <div class="loading-ring" aria-hidden="true">
+              <svg viewBox="0 0 130 130">
+                <circle class="track" cx="65" cy="65" r="60"></circle>
+                <circle class="fill" id="loadingFill" cx="65" cy="65" r="60"></circle>
+              </svg>
+              <div class="loading-ring-label" id="loadingPct">0%</div>
+            </div>
+            <div class="loading-status">
+              <div class="step" id="loadingStep">Looking at your answers…</div>
+              <div class="sub">This will only take a moment</div>
+            </div>
+            <ul class="loading-checks" id="loadingChecks">
+              <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>Reviewing your answers</li>
+              <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>Spotting the patterns</li>
+              <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>Shaping your snapshot</li>
+              <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>Almost ready</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== 12. DASHBOARD (unified result screen) ============== -->
+      <section class="screen" data-screen="dashboard">
+        <div class="screen-body">
+          <div class="dash-stage">
+
+            <!-- Header -->
+            <header class="dash-header">
+              <p class="dash-eyebrow" id="dashEyebrow">YOUR REFLECTION</p>
+              <h2 class="dash-title" id="dashTitle">Your dashboard</h2>
+              <p class="dash-summary" id="dashSummary"></p>
+            </header>
+
+            <!-- Hero card: risk + intensity gauge -->
+            <article class="dash-hero">
+              <div class="dash-hero-left">
+                <span class="risk-pill is-mild" id="riskPill">Signal</span>
+                <div class="dash-hero-label" id="riskLabel">Pattern signal</div>
+                <p class="dash-hero-sub" id="riskHeroSub"></p>
+              </div>
+              <div class="dash-hero-gauge" id="dashGauge" aria-hidden="true"></div>
+            </article>
+
+            <!-- Metric row -->
+            <div class="dash-metrics" id="dashMetrics"></div>
+
+            <!-- Primary pattern -->
+            <article class="dash-card dash-pattern">
+              <div class="dash-card-eyebrow"><span class="dot is-amber"></span>PRIMARY PATTERN</div>
+              <h3 class="dash-card-title" id="patternTitle">—</h3>
+              <p class="dash-card-body" id="patternBody">—</p>
+            </article>
+
+            <!-- Trigger map -->
+            <article class="dash-card dash-trigger">
+              <div class="dash-card-eyebrow"><span class="dot is-rose"></span>TRIGGER MAP</div>
+              <h3 class="dash-card-title">Where the pull comes from</h3>
+              <div class="trigger-bars" id="triggerBars"></div>
+            </article>
+
+            <!-- Signal breakdown — derived from the user's actual answers
+                 grouped by DSM-5-inspired theme. Hidden if there isn't
+                 enough variation across themes to make the chart useful. -->
+            <article class="dash-card dash-themes" id="themeCard" hidden>
+              <div class="dash-card-eyebrow"><span class="dot is-amber"></span>SIGNAL BREAKDOWN</div>
+              <h3 class="dash-card-title">Where you scored highest</h3>
+              <div class="theme-bars" id="themeBars"></div>
+              <p class="dash-card-caption">From your answers, by theme.</p>
+            </article>
+
+            <!-- 90-day projection -->
+            <article class="dash-card dash-projection">
+              <div class="dash-card-eyebrow"><span class="dot is-blue"></span>90-DAY PROJECTION</div>
+              <h3 class="dash-card-title" id="projectionTitle">Where this can go</h3>
+              <div class="dash-chart" id="dashChart" aria-hidden="true"></div>
+              <div class="dash-axis">
+                <span>Day 1</span>
+                <span>Day 7</span>
+                <span>Day 30</span>
+                <span>Day 90</span>
+              </div>
+              <div class="dash-legend">
+                <span class="dash-legend-item is-stability"><span class="dot"></span>Stability</span>
+                <span class="dash-legend-item is-pressure"><span class="dot"></span>Pressure</span>
+              </div>
+              <p class="dash-card-caption">A projection — not a guarantee.</p>
+            </article>
+
+            <!-- Insights -->
+            <div class="dash-insights" id="dashInsights"></div>
+
+            <!-- Crisis banner (conditional) -->
+            <div class="crisis-banner" id="crisisBanner" hidden>
+              <strong>Please don’t carry this alone.</strong> If anything you’re feeling is urgent, reach out: in the US, call or text <a href="tel:988">988</a>. Internationally, <a href="https://findahelpline.com/" target="_blank" rel="noopener">findahelpline.com</a> has lines local to you.
+            </div>
+
+            <!-- Plan section -->
+            <section class="dash-plan">
+              <div class="dash-card-eyebrow"><span class="dot is-blue"></span>YOUR PLAN</div>
+              <h3 class="dash-plan-title" id="planTitle">Your first move</h3>
+              <div class="plan-steps" id="planSteps"></div>
+            </section>
+
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="dashNext">Start with Mia</button>
+        </div>
+      </section>
+
+      <!-- ============== 15. TRIAL / COUNTER ============== -->
+      <section class="screen" data-screen="trial">
+        <div class="screen-body is-centered trial-body">
+          <div class="trial">
+            <div class="trial-top">
+              <p class="counter-eyebrow trial-eyebrow-top">Don’t stop here.</p>
+              <h2 class="trial-final-title" id="trialTitle">Mia has a plan for you.</h2>
+            </div>
+            <div class="counter-block" aria-live="polite">
+              <p class="counter-eyebrow">You’ve been on this path for</p>
+              <div class="counter">
+                <div class="unit"><span class="num" id="cDays">00</span><span class="lbl">Days</span></div>
+                <span class="sep">:</span>
+                <div class="unit"><span class="num" id="cHours">00</span><span class="lbl">Hrs</span></div>
+                <span class="sep">:</span>
+                <div class="unit"><span class="num" id="cMins">00</span><span class="lbl">Min</span></div>
+                <span class="sep">:</span>
+                <div class="unit"><span class="num" id="cSecs">00</span><span class="lbl">Sec</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <p class="trial-final-sub">Continue the conversation in the app.</p>
+          <a class="btn btn-primary" href="https://miaa.onelink.me/pWMS/generalform" target="_blank" rel="noopener">Download the app</a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Shared logic — same IDs in this HTML, same flow, same API calls. -->
+<script src="../addiction/app.js"></script>
+<!-- v2-only intro-voice handler. Loaded as a regular script so it can
+     reach into the DOM and the body's data-bg-state without complications.
+     It runs after app.js's IIFE has bound the welcome listeners — those
+     bindings work whether or not the welcome screen is currently visible. -->
+<script src="./intro-voice.js"></script>
+</body>
+</html>
