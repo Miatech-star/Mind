@@ -126,8 +126,8 @@ Output STRICT JSON only (no prose, no markdown) matching this schema exactly:
   "risk": {
     "level": "<echo the deterministic risk_level>",
     "score": <echo the deterministic risk_score>,
-    "label": "<2–3 words, e.g., 'Strong signal', 'Mild signal'>",
-    "summary": "<1–2 sentences. Specific to the user's substance and answers — never generic.>"
+    "label": "<2–3 words, e.g., 'Strong signal', 'Mild signal', 'Early signal'>",
+    "summary": "<1 sentence preferred (≤ 30 words). 2 short sentences max. Specific to the user's substance and answers — never generic. Sits centered under the gauge so brevity matters.>"
   },
   "primaryPattern": {
     "title": "3–6 words — the single strongest pattern in the answers",

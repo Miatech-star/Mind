@@ -307,48 +307,33 @@
         <div class="screen-body">
           <div class="dash-stage">
 
-            <!-- Header -->
+            <!-- Header — centered. Title + eyebrow only; the summary
+                 text moved into the hero block below. -->
             <header class="dash-header">
               <p class="dash-eyebrow" id="dashEyebrow">YOUR REFLECTION</p>
               <h2 class="dash-title" id="dashTitle">Your dashboard</h2>
-              <p class="dash-summary" id="dashSummary"></p>
             </header>
 
-            <!-- Hero card: risk + intensity gauge -->
+            <!-- Hero — centered, gauge as the focal element on top,
+                 then a small badge (severity pill + short result), then
+                 the personalized summary paragraph. -->
             <article class="dash-hero">
-              <div class="dash-hero-left">
-                <span class="risk-pill is-mild" id="riskPill">Signal</span>
-                <div class="dash-hero-label" id="riskLabel">Pattern signal</div>
-                <p class="dash-hero-sub" id="riskHeroSub"></p>
-              </div>
               <div class="dash-hero-gauge" id="dashGauge" aria-hidden="true"></div>
+              <div class="dash-hero-badge">
+                <span class="risk-pill is-mild" id="riskPill">Signal</span>
+                <span class="dash-hero-result" id="riskLabel">Pattern signal</span>
+              </div>
+              <p class="dash-hero-summary" id="dashSummary"></p>
             </article>
 
             <!-- Metric row -->
             <div class="dash-metrics" id="dashMetrics"></div>
-
-            <!-- Primary pattern -->
-            <article class="dash-card dash-pattern">
-              <div class="dash-card-eyebrow"><span class="dot is-amber"></span>PRIMARY PATTERN</div>
-              <h3 class="dash-card-title" id="patternTitle">—</h3>
-              <p class="dash-card-body" id="patternBody">—</p>
-            </article>
 
             <!-- Trigger map -->
             <article class="dash-card dash-trigger">
               <div class="dash-card-eyebrow"><span class="dot is-rose"></span>TRIGGER MAP</div>
               <h3 class="dash-card-title">Where the pull comes from</h3>
               <div class="trigger-bars" id="triggerBars"></div>
-            </article>
-
-            <!-- Signal breakdown — derived from the user's actual answers
-                 grouped by DSM-5-inspired theme. Hidden if there isn't
-                 enough variation across themes to make the chart useful. -->
-            <article class="dash-card dash-themes" id="themeCard" hidden>
-              <div class="dash-card-eyebrow"><span class="dot is-amber"></span>SIGNAL BREAKDOWN</div>
-              <h3 class="dash-card-title">Where you scored highest</h3>
-              <div class="theme-bars" id="themeBars"></div>
-              <p class="dash-card-caption">From your answers, by theme.</p>
             </article>
 
             <!-- 90-day projection -->
@@ -367,6 +352,25 @@
                 <span class="dash-legend-item is-pressure"><span class="dot"></span>Pressure</span>
               </div>
               <p class="dash-card-caption">A projection — not a guarantee.</p>
+            </article>
+
+            <!-- Signal breakdown — derived from the user's actual answers
+                 grouped by DSM-5-inspired theme. Hidden if there isn't
+                 enough variation across themes to make the chart useful. -->
+            <article class="dash-card dash-themes" id="themeCard" hidden>
+              <div class="dash-card-eyebrow"><span class="dot is-amber"></span>SIGNAL BREAKDOWN</div>
+              <h3 class="dash-card-title">Where you scored highest</h3>
+              <div class="theme-bars" id="themeBars"></div>
+              <p class="dash-card-caption">From your answers, by theme.</p>
+            </article>
+
+            <!-- Primary pattern — moved to AFTER the breakdown so the
+                 narrative card sits as a closing summary of the data
+                 above it. -->
+            <article class="dash-card dash-pattern">
+              <div class="dash-card-eyebrow"><span class="dot is-amber"></span>PRIMARY PATTERN</div>
+              <h3 class="dash-card-title" id="patternTitle">—</h3>
+              <p class="dash-card-body" id="patternBody">—</p>
             </article>
 
             <!-- Insights -->

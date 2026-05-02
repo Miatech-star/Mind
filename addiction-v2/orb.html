@@ -21,13 +21,15 @@ html,body{
   position:relative;
   width:100%;height:100%;
   display:flex;align-items:center;justify-content:center;
-  /* Grow-in: starts hidden + tiny, then expands from center over ~2s. */
+  /* Grow-in: starts hidden + tiny, then unfolds from the center over
+     ~3.6s. Slower than the previous 2.2s — the orb feels like it's
+     coming into being rather than appearing. */
   transform: scale(0.04);
   opacity: 0;
   transform-origin: center center;
   transition:
-    transform 2200ms cubic-bezier(.16, 1, .30, 1),
-    opacity 1400ms cubic-bezier(.4, 0, .2, 1);
+    transform 3600ms cubic-bezier(.16, 1, .30, 1),
+    opacity 2200ms cubic-bezier(.4, 0, .2, 1);
   will-change: transform, opacity;
 }
 #wrap.is-grown{

@@ -258,7 +258,8 @@ body.hero-bursting .hero-glow {
 .screen-footer {
   position: absolute; left: 0; right: 0; bottom: 0;
   display: flex; flex-direction: column; gap: 10px;
-  padding: 12px 0 6px; background: transparent; pointer-events: none; z-index: 2;
+  padding: 12px 0 28px;     /* bottom 28 px gives the button room to breathe */
+  background: transparent; pointer-events: none; z-index: 2;
 }
 .screen-footer > * { pointer-events: auto; }
 
@@ -480,6 +481,42 @@ body.hero-bursting .hero-glow {
   margin: 0;
   letter-spacing: -0.01em;
   max-width: 36ch;
+}
+
+/* =========================================================
+   Welcome screen — staggered, deliberately slow entrance.
+   Each block fades + lifts in slightly behind the previous,
+   with a soft blur-to-clear so it doesn't pop. The .screen
+   base entrance animation is disabled here so it doesn't
+   double-up with the per-element ones.
+   ========================================================= */
+.screen[data-screen="welcome"] { animation: none; }
+.screen[data-screen="welcome"].active .welcome-carousel,
+.screen[data-screen="welcome"].active .welcome-eyebrow,
+.screen[data-screen="welcome"].active .welcome-title,
+.screen[data-screen="welcome"].active .welcome-sub,
+.screen[data-screen="welcome"].active .welcome-credits,
+.screen[data-screen="welcome"].active .screen-footer {
+  animation: welcome-stagger 1300ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.screen[data-screen="welcome"].active .welcome-carousel { animation-delay:   0ms; }
+.screen[data-screen="welcome"].active .welcome-eyebrow  { animation-delay: 350ms; }
+.screen[data-screen="welcome"].active .welcome-title    { animation-delay: 600ms; }
+.screen[data-screen="welcome"].active .welcome-sub      { animation-delay: 850ms; }
+.screen[data-screen="welcome"].active .welcome-credits  { animation-delay: 1050ms; }
+.screen[data-screen="welcome"].active .screen-footer    { animation-delay: 1250ms; }
+@keyframes welcome-stagger {
+  0%   { opacity: 0; transform: translateY(14px); filter: blur(4px); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translateY(0);    filter: blur(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen[data-screen="welcome"].active .welcome-carousel,
+  .screen[data-screen="welcome"].active .welcome-eyebrow,
+  .screen[data-screen="welcome"].active .welcome-title,
+  .screen[data-screen="welcome"].active .welcome-sub,
+  .screen[data-screen="welcome"].active .welcome-credits,
+  .screen[data-screen="welcome"].active .screen-footer { animation: none; }
 }
 
 /* =========================================================
@@ -816,16 +853,14 @@ body.hero-bursting .hero-glow {
 .q-option.selected .dot::after { transform: scale(1); }
 
 /* =========================================================
-   Loading screen — sits on the radial, so everything reads white.
-   The whole stage is anchored toward the top of the screen body
-   instead of dead-center, so it lands on the brightest part of the
-   radial (slightly higher than before).
+   Loading screen — perfectly centered.
+   Ring + percentage label + status text + checks all stack in
+   the dead-center of the screen, behind the morphed radial.
    ========================================================= */
 .loading-stage {
   flex: 1; display: flex; flex-direction: column;
-  justify-content: flex-start; align-items: center;   /* was: center */
+  justify-content: center; align-items: center;
   text-align: center; gap: 28px; width: 100%;
-  padding-top: clamp(28px, 6vh, 80px);
 }
 .loading-ring { width: 130px; height: 130px; position: relative; }
 .loading-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -965,9 +1000,10 @@ body.hero-bursting .hero-glow {
   text-align: left; width: 100%; padding: 0 0 16px; gap: 14px;
 }
 
-/* Header */
+/* Header — centered. Eyebrow + title only; the summary text now
+   lives inside the hero block below the gauge. */
 .dash-header {
-  width: 100%; text-align: left;
+  width: 100%; text-align: center;
   margin-bottom: 2px;
 }
 .dash-eyebrow {
@@ -977,54 +1013,53 @@ body.hero-bursting .hero-glow {
 .dash-title {
   font-family: var(--serif); font-weight: 600;
   font-size: clamp(26px, 6.4vw, 30px);
-  letter-spacing: -0.015em; line-height: 1.1;
+  letter-spacing: -0.015em; line-height: 1.15;
   color: var(--ink); margin: 0 0 8px;
 }
-.dash-summary {
-  font-size: 14.5px; color: var(--ink-2);
-  line-height: 1.55; margin: 0;
-}
 
-/* Hero card: risk + intensity gauge.
-   Gauge gets generous fixed width; the text column flexes around it. */
+/* Hero — centered vertical stack with the gauge as the focal point.
+   Gauge sits on top, then a small badge (severity pill + short
+   result text), then a centered personalized summary paragraph. */
 .dash-hero {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F6F8FF 100%);
-  border: 1px solid rgba(0, 84, 255, 0.15);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  box-shadow: var(--shadow-sm);
-  display: grid;
-  grid-template-columns: 1fr 150px;   /* was 1fr auto with a 110px gauge */
+  background: transparent;
+  border: 0;
+  padding: 8px 4px 12px;
+  box-shadow: none;
+  display: flex; flex-direction: column;
   align-items: center;
-  gap: 12px;
-}
-.dash-hero-left {
-  display: flex; flex-direction: column; gap: 6px; min-width: 0;
-}
-.dash-hero-label {
-  font-family: var(--serif); font-weight: 600;
-  font-size: 17px; line-height: 1.2;
-  color: var(--ink); letter-spacing: -0.005em;
-  margin-top: 2px;
-}
-.dash-hero-sub {
-  font-size: 13px; line-height: 1.5;
-  color: var(--ink-2); margin: 0;
+  text-align: center;
+  gap: 10px;
 }
 .dash-hero-gauge {
-  width: 150px; height: 95px; flex-shrink: 0;     /* was 110×70 */
-  margin-left: auto;                               /* hug the right edge */
+  width: 220px; height: 130px; flex-shrink: 0;
 }
 .dash-hero-gauge svg { width: 100%; height: 100%; display: block; }
 
-/* The risk badge inside the hero card: tighter than the global pill so
-   it doesn't visually crowd the gauge. */
-.dash-hero .risk-pill {
-  align-self: flex-start;
+/* The badge row sits directly under the gauge: small pill + short
+   result text in a horizontal pair, centered. */
+.dash-hero-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 2px;
+}
+.dash-hero-badge .risk-pill {
   padding: 4px 10px;
   font-size: 11.5px;
   letter-spacing: 0.04em;
   border-radius: 6px;
+}
+.dash-hero-result {
+  font-family: var(--serif); font-weight: 600;
+  font-size: 17px; line-height: 1.2;
+  color: var(--ink); letter-spacing: -0.005em;
+}
+
+/* Centered personalized summary text below the badge. */
+.dash-hero-summary {
+  font-size: 14px; line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 38ch;
+  margin: 6px auto 0;
+  text-align: center;
 }
 
 /* Metric cards row */

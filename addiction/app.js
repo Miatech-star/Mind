@@ -1165,12 +1165,11 @@
     const d = STATE.result;
     const name = STATE.name;
 
-    // Header
+    // Header — centered.
     $('#dashEyebrow').textContent = name ? (name + '’s reflection').toUpperCase() : 'YOUR REFLECTION';
     $('#dashTitle').textContent = name ? name + ', here’s what surfaced.' : 'Here’s what surfaced.';
-    $('#dashSummary').textContent = (d.risk && d.risk.summary) || '';
 
-    // Risk hero
+    // Hero: gauge + badge + summary, all centered.
     const risk = d.risk || {};
     const pill = $('#riskPill');
     pill.classList.remove('is-minimal', 'is-mild', 'is-moderate', 'is-severe');
@@ -1178,7 +1177,8 @@
     const riskTextLabels = { minimal: 'Low', mild: 'Mild', moderate: 'Moderate', severe: 'Strong' };
     pill.textContent = riskTextLabels[risk.level] || 'Signal';
     $('#riskLabel').textContent = risk.label || 'Pattern signal';
-    $('#riskHeroSub').textContent = '';
+    // Summary now lives inside the hero, below the badge.
+    $('#dashSummary').textContent = (d.risk && d.risk.summary) || '';
 
     drawGauge($('#dashGauge'), Number(risk.score) || 0);
 
@@ -1336,23 +1336,75 @@
     if (!container) return;
     const W = 200, H = 110;
     const cx = 100, cy = 92, r = 80;
-    const p = Math.max(0.02, Math.min(1, (Number(score) || 0) / 100));
+    const sNum = Number(score) || 0;
+    const p = Math.max(0.02, Math.min(1, sNum / 100));
     const angle = (1 - p) * Math.PI; // 180° → 0°
     const ex = cx + r * Math.cos(angle);
     const ey = cy - r * Math.sin(angle);
-    // Sweep + large-arc flags
+
+    // The gradient's END color matches the badge for this score's
+    // level. So the last visible segment of the arc reads the same
+    // hue as the colored pill below it — the eye instantly couples
+    // the two. We always start green and progress through warmer
+    // colors only as needed, so a "minimal" gauge stays solid green
+    // and a "severe" gauge actually shows the green→yellow→red
+    // spectrum across the rendered arc.
+    //
+    // Server-side level boundaries (from safety.js):
+    //   minimal < 18, mild 18–35, moderate 36–54, severe 55+.
+    const COLORS = {
+      green:  '#16A34A',
+      amber:  '#FFB546',
+      orange: '#FF7A3D',
+      red:    '#DC4040',
+    };
+    const endColor =
+      sNum < 18 ? COLORS.green
+      : sNum < 36 ? COLORS.amber
+      : sNum < 55 ? COLORS.orange
+      : COLORS.red;
+
+    // Build stops. The last visible position of the arc is at
+    // p × 100 % of the gradient (because the gradient spans the
+    // full half-circle in user-space coords). Place the badge color
+    // there. Repeat it past the arc end so any overshoot stays the
+    // same hue rather than bleeding into a different color.
+    const endStop = Math.max(3, p * 100);
+    let stops;
+    if (sNum < 18) {
+      // minimal — solid green; no transitions needed.
+      stops = '<stop offset="0%" stop-color="' + COLORS.green + '" />' +
+              '<stop offset="100%" stop-color="' + COLORS.green + '" />';
+    } else if (sNum < 36) {
+      // mild — green → amber. End color = amber at p%.
+      stops = '<stop offset="0%" stop-color="' + COLORS.green + '" />' +
+              '<stop offset="' + endStop.toFixed(2) + '%" stop-color="' + COLORS.amber + '" />' +
+              '<stop offset="100%" stop-color="' + COLORS.amber + '" />';
+    } else if (sNum < 55) {
+      // moderate — green → amber midpoint → orange. End at p%.
+      stops = '<stop offset="0%" stop-color="' + COLORS.green + '" />' +
+              '<stop offset="' + (endStop * 0.55).toFixed(2) + '%" stop-color="' + COLORS.amber + '" />' +
+              '<stop offset="' + endStop.toFixed(2) + '%" stop-color="' + COLORS.orange + '" />' +
+              '<stop offset="100%" stop-color="' + COLORS.orange + '" />';
+    } else {
+      // severe — full green → amber → orange → red.
+      stops = '<stop offset="0%" stop-color="' + COLORS.green + '" />' +
+              '<stop offset="' + (endStop * 0.40).toFixed(2) + '%" stop-color="' + COLORS.amber + '" />' +
+              '<stop offset="' + (endStop * 0.72).toFixed(2) + '%" stop-color="' + COLORS.orange + '" />' +
+              '<stop offset="' + endStop.toFixed(2) + '%" stop-color="' + COLORS.red + '" />' +
+              '<stop offset="100%" stop-color="' + COLORS.red + '" />';
+    }
+
     container.innerHTML =
       '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pattern intensity gauge">' +
         '<defs>' +
-          '<linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">' +
-            '<stop offset="0%"  stop-color="#16A34A" />' +
-            '<stop offset="50%" stop-color="#FFB546" />' +
-            '<stop offset="100%" stop-color="#DC4040" />' +
+          '<linearGradient id="gaugeGrad" gradientUnits="userSpaceOnUse" x1="' + (cx - r) + '" y1="' + cy + '" x2="' + (cx + r) + '" y2="' + cy + '">' +
+            stops +
           '</linearGradient>' +
         '</defs>' +
         '<path d="M ' + (cx - r) + ' ' + cy + ' A ' + r + ' ' + r + ' 0 0 1 ' + (cx + r) + ' ' + cy + '" fill="none" stroke="#E7E7EC" stroke-width="11" stroke-linecap="round" />' +
         '<path d="M ' + (cx - r) + ' ' + cy + ' A ' + r + ' ' + r + ' 0 0 1 ' + ex + ' ' + ey + '" fill="none" stroke="url(#gaugeGrad)" stroke-width="11" stroke-linecap="round" />' +
-        '<text x="' + cx + '" y="' + (cy - 16) + '" text-anchor="middle" font-family="\'Utopia Std Display\', \'Source Serif 4\', Georgia, serif" font-size="34" font-weight="600" fill="#0E0E12">' + Math.round(Number(score) || 0) + '</text>' +
+        '<text x="' + cx + '" y="' + (cy - 16) + '" text-anchor="middle" font-family="\'Utopia Std Display\', \'Source Serif 4\', Georgia, serif" font-size="34" font-weight="600" fill="#0E0E12">' + Math.round(sNum) + '</text>' +
         '<text x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2" fill="#8A8A94">INTENSITY</text>' +
       '</svg>';
   }

@@ -36,6 +36,11 @@
   // starting the orb-to-radial morph. Keeps the closing line from
   // feeling abrupt and gives the user time to read it.
   const HOLD_AFTER_END_MS   = 1400;
+  // The captions fade out FIRST (independent of the orb), with this
+  // much lead time before the orb starts moving. So the user reads
+  // the last line, the captions dissolve, and only then does the
+  // orb begin its descent.
+  const CAPTIONS_FADE_LEAD  = 550;
   // Total morph duration — must match the CSS transitions on
   // .iv-orb (.is-leaving) and body[data-bg-state="welcome"] .hero-glow.
   const MORPH_DURATION_MS   = 1400;
@@ -162,28 +167,36 @@
   // the welcome position and the orb is invisible — we drop the
   // intro-voice screen and reveal welcome.
   function beginMorph() {
-    // 1. Snap the radial to the morphing state (no transition, so it
-    //    appears at the orb's spot scaled-to-orb-size, transparent).
-    document.body.setAttribute('data-bg-state', 'morphing');
+    // Step 0. Fade the captions FIRST so they're gone before the
+    // orb starts moving. If we let them fade together, the user
+    // sees a phrase still drifting on screen as the orb slides
+    // down and that reads as messy.
+    if (textEl) textEl.classList.add('is-leaving');
 
-    // 2. Force the morphing styles to commit before triggering the
-    //    welcome transition. Two rAFs is the standard belt-and-braces
-    //    way to make sure the previous state was painted.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      // 3. Trigger the unified transition: radial → welcome state,
-      //    orb → .is-leaving. Same duration/easing in CSS.
-      document.body.setAttribute('data-bg-state', 'welcome');
-      screen.classList.add('is-leaving');
+    setTimeout(() => {
+      // 1. Snap the radial to the morphing state (no transition, so it
+      //    appears at the orb's spot scaled-to-orb-size, transparent).
+      document.body.setAttribute('data-bg-state', 'morphing');
 
-      // 4. After the transition completes, swap which screen is
-      //    .active and free orb GPU resources.
-      setTimeout(() => {
-        screen.classList.remove('active');
-        const welcome = document.querySelector('.screen[data-screen="welcome"]');
-        if (welcome) welcome.classList.add('active');
-        if (orbFrame && orbFrame.parentNode) orbFrame.parentNode.removeChild(orbFrame);
-      }, MORPH_DURATION_MS + 60);
-    }));
+      // 2. Force the morphing styles to commit before triggering the
+      //    welcome transition. Two rAFs is the standard belt-and-braces
+      //    way to make sure the previous state was painted.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        // 3. Trigger the unified transition: radial → welcome state,
+        //    orb → .is-leaving. Same duration/easing in CSS.
+        document.body.setAttribute('data-bg-state', 'welcome');
+        screen.classList.add('is-leaving');
+
+        // 4. After the transition completes, swap which screen is
+        //    .active and free orb GPU resources.
+        setTimeout(() => {
+          screen.classList.remove('active');
+          const welcome = document.querySelector('.screen[data-screen="welcome"]');
+          if (welcome) welcome.classList.add('active');
+          if (orbFrame && orbFrame.parentNode) orbFrame.parentNode.removeChild(orbFrame);
+        }, MORPH_DURATION_MS + 60);
+      }));
+    }, CAPTIONS_FADE_LEAD);
   }
 
   // ----- Intriguing prompt fallback -----
@@ -208,6 +221,10 @@
       stage.removeEventListener('touchend', dismiss);
       promptEl.classList.remove('is-shown');
       stage.dataset.tappable = '';
+      // Wake the orb: scales down from screen-filling 2.5× to its
+      // natural size and ramps opacity to full. CSS handles the
+      // transition (~1.1s).
+      stage.classList.remove('is-asleep');
       // Try to play; on success, kick the sync loop. We DO NOT
       // surface a second fallback if this also fails — at this
       // point the user has tapped, so it should always work.
@@ -228,12 +245,22 @@
   }
   function tryStart() {
     const p = audio.play();
-    raf = requestAnimationFrame(tick);
     if (p && typeof p.then === 'function') {
-      p.catch(() => {
-        cancelAnimationFrame(raf); raf = 0;
+      p.then(() => {
+        // Autoplay worked. Wake the orb (CSS scales it down) and
+        // run the caption sync loop alongside the audio.
+        stage.classList.remove('is-asleep');
+        raf = requestAnimationFrame(tick);
+      }).catch(() => {
+        // Autoplay blocked — show the prompt and keep the orb
+        // asleep until the user taps. dismiss() handles the rest.
         showPrompt();
       });
+    } else {
+      // Older browser without play()-returns-promise. Best-effort:
+      // assume it played, wake the orb, run captions.
+      stage.classList.remove('is-asleep');
+      raf = requestAnimationFrame(tick);
     }
   }
 
