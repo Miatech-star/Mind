@@ -1,0 +1,3021 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#F4F4F6">
+<title>Mia AI - Addiction Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&amp;display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     Tokens
+     ========================================================= */
+  :root {
+    --bg: #F4F4F6;
+    --surface: #FFFFFF;
+    --surface-2: #FAFAFB;
+    --surface-trans: rgba(255, 255, 255, 0.62);
+    --ink: #0E0E12;
+    --ink-2: #4A4A55;
+    --ink-3: #8A8A94;
+    --line: #E7E7EC;
+    --primary: #2D5BFF;
+    --primary-press: #1E47E0;
+    --primary-tint: #EAEFFF;
+    --warm: #FFB546;
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+    --radius-pill: 999px;
+    --shadow-sm: 0 1px 2px rgba(14, 14, 18, 0.04), 0 1px 1px rgba(14, 14, 18, 0.02);
+    --shadow-md: 0 8px 24px rgba(14, 14, 18, 0.06), 0 2px 6px rgba(14, 14, 18, 0.03);
+    --shadow-lg: 0 20px 60px rgba(14, 14, 18, 0.10);
+    --serif: 'Utopia STD Subhead', 'Utopia Std', 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+  }
+
+  /* =========================================================
+     Base
+     ========================================================= */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--bg);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input { font-family: inherit; }
+
+  /* =========================================================
+     Animated background — soft, calming, drifting
+     Sits behind every screen (consistent #F4F4F6 base)
+     ========================================================= */
+  .bg-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    will-change: transform;
+  }
+  .blob.b1 {
+    width: 60vmax; height: 60vmax;
+    left: -20vmax; top: -25vmax;
+    background: radial-gradient(circle at 30% 30%, #C7D6FF 0%, rgba(199,214,255,0) 70%);
+    animation: drift1 28s ease-in-out infinite alternate;
+  }
+  .blob.b2 {
+    width: 55vmax; height: 55vmax;
+    right: -22vmax; top: 10vmax;
+    background: radial-gradient(circle at 60% 40%, #FFE3C7 0%, rgba(255,227,199,0) 70%);
+    animation: drift2 34s ease-in-out infinite alternate;
+  }
+  .blob.b3 {
+    width: 50vmax; height: 50vmax;
+    left: 10vmax; bottom: -25vmax;
+    background: radial-gradient(circle at 50% 50%, #E5D6FF 0%, rgba(229,214,255,0) 70%);
+    animation: drift3 40s ease-in-out infinite alternate;
+  }
+  .blob.b4 {
+    width: 40vmax; height: 40vmax;
+    right: -10vmax; bottom: -15vmax;
+    background: radial-gradient(circle at 50% 50%, #D6F0E1 0%, rgba(214,240,225,0) 70%);
+    animation: drift4 32s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { 0% { transform: translate3d(0,0,0) scale(1); } 100% { transform: translate3d(6vmax,4vmax,0) scale(1.08); } }
+  @keyframes drift2 { 0% { transform: translate3d(0,0,0) scale(1); } 100% { transform: translate3d(-5vmax,6vmax,0) scale(1.05); } }
+  @keyframes drift3 { 0% { transform: translate3d(0,0,0) scale(1); } 100% { transform: translate3d(4vmax,-5vmax,0) scale(1.06); } }
+  @keyframes drift4 { 0% { transform: translate3d(0,0,0) scale(1); } 100% { transform: translate3d(-6vmax,-3vmax,0) scale(1.04); } }
+  @media (prefers-reduced-motion: reduce) { .blob { animation: none !important; } }
+
+  /* =========================================================
+     App shell
+     ========================================================= */
+  .app {
+    position: relative;
+    z-index: 1;
+    height: 100dvh;
+    display: flex;
+    justify-content: center;
+    padding: max(env(safe-area-inset-top), 12px) 0 max(env(safe-area-inset-bottom), 12px);
+  }
+  .frame {
+    width: 100%;
+    max-width: 460px;
+    height: calc(100dvh - 24px);
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    overflow: hidden;
+  }
+  @media (min-width: 720px) {
+    .app { padding-top: 32px; padding-bottom: 32px; align-items: center; }
+    .frame {
+      max-width: 440px;
+      height: min(900px, calc(100dvh - 64px));
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: saturate(140%) blur(18px);
+      -webkit-backdrop-filter: saturate(140%) blur(18px);
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: var(--shadow-lg);
+      padding: 20px 24px;
+      overflow: hidden;
+    }
+  }
+
+  /* =========================================================
+     Top bar
+     ========================================================= */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0 16px;
+  }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: var(--ink);
+    transition: transform .15s var(--ease), background .15s var(--ease);
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.94); }
+  .icon-btn[hidden] { visibility: hidden; pointer-events: none; }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .progress { flex: 1; display: flex; gap: 6px; height: 6px; }
+  .progress .pip {
+    flex: 1;
+    background: rgba(14, 14, 18, 0.08);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress .pip::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--ink);
+    transform: scaleX(var(--fill, 0));
+    transform-origin: left;
+    transition: transform .5s var(--ease);
+  }
+  .progress .pip.done::after { transform: scaleX(1); }
+  .progress .pip.active::after { transform: scaleX(var(--fill, 1)); }
+
+  .skip {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+    padding: 6px 10px;
+    border-radius: 99px;
+    transition: color .15s var(--ease), background .15s var(--ease);
+    flex-shrink: 0;
+  }
+  .skip:hover { color: var(--ink); background: rgba(14, 14, 18, 0.04); }
+  .skip[hidden] { visibility: hidden; pointer-events: none; }
+
+  /* =========================================================
+     Screens & transitions
+     ========================================================= */
+  .screens {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .screen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    position: relative;
+    min-height: 0;
+    animation: enter .42s var(--ease) both;
+  }
+  .screen.active { display: flex; }
+  @keyframes enter {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .screen-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    /* Bottom padding clears the absolutely-positioned footer (button + safe gap)
+       so no option is ever overlapped or hidden behind it. */
+    padding: 8px 0 100px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .screen-body::-webkit-scrollbar { display: none; }
+
+  /* All screens are centered by default */
+  .screen-body.is-centered { text-align: center; align-items: center; }
+  .screen-body.is-centered > * { width: 100%; }
+
+  /* Footer is pinned to the bottom of each screen — always visible. */
+  .screen-footer {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 0 6px;
+    background: transparent;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .screen-footer > * { pointer-events: auto; }
+
+  /* =========================================================
+     Typography
+     ========================================================= */
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 14px;
+  }
+  .title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(28px, 7vw, 34px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 12px;
+  }
+  .lede {
+    font-size: 16px;
+    color: var(--ink-2);
+    margin: 0 0 24px;
+    line-height: 1.5;
+    max-width: 36ch;
+  }
+  .is-centered .lede { margin-left: auto; margin-right: auto; }
+
+  /* =========================================================
+     Buttons
+     ========================================================= */
+  .btn {
+    appearance: none;
+    width: 100%;
+    height: 56px;
+    border-radius: var(--radius-pill);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    gap: 8px;
+    transition: transform .12s var(--ease), background .15s var(--ease), box-shadow .15s var(--ease), opacity .15s var(--ease);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(45, 91, 255, 0.28);
+  }
+  .btn-primary:hover { background: var(--primary-press); }
+  .btn-primary:active { transform: scale(0.985); }
+  .btn-primary:disabled {
+    background: #E6E4EB;
+    color: var(--ink-3);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-2);
+    height: 44px;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-ghost.center { text-align: center; }
+
+  /* =========================================================
+     Inputs
+     ========================================================= */
+  .field {
+    width: 100%;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    padding: 0 18px;
+    font-size: 17px;
+    color: var(--ink);
+    outline: none;
+    text-align: center;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  .field::placeholder { color: var(--ink-3); }
+  .field:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(45, 91, 255, 0.10); }
+
+  /* =========================================================
+     Choice list — left-aligned per spec (only exception)
+     ========================================================= */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+  }
+  .choice {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    transition: border-color .15s var(--ease), background .15s var(--ease), transform .12s var(--ease);
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .choice:hover { background: var(--surface-2); }
+  .choice:active { transform: scale(0.995); }
+  .choice .dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .choice .dot::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #fff;
+    transform: scale(0);
+    transition: transform .15s var(--ease);
+  }
+  .choice .icon {
+    font-size: 22px;
+    line-height: 1;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .choice .label-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    flex: 1;
+  }
+  .choice.selected {
+    border-color: var(--primary);
+    background: var(--primary-tint);
+  }
+  .choice.selected .dot {
+    border-color: var(--primary);
+    background: var(--primary);
+  }
+  .choice.selected .dot::after { transform: scale(1); }
+
+  /* =========================================================
+     Welcome — no card; title vertically centered; credits above button
+     ========================================================= */
+  .welcome-body {
+    /* Reserve room for the absolute footer (button height + gaps) */
+    padding-bottom: 120px;
+    padding-top: 16px;
+  }
+  .flex-spacer { flex: 1; min-height: 16px; }
+  .welcome-top {
+    width: 100%;
+  }
+  .welcome-eyebrow {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--ink-3);
+    margin: 0 0 14px;
+    letter-spacing: 0.02em;
+  }
+  .welcome-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(34px, 9vw, 44px);
+    line-height: 1.1;
+    color: var(--ink);
+    margin: 0 auto 16px;
+    letter-spacing: -0.015em;
+    max-width: 14ch;
+  }
+  .welcome-sub {
+    font-size: 16px;
+    color: var(--ink-2);
+    margin: 0 auto;
+    max-width: 32ch;
+    line-height: 1.5;
+  }
+  .welcome-credits {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+  .welcome-stars {
+    color: var(--warm);
+    font-size: 18px;
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .welcome-stat-num {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    line-height: 1.2;
+  }
+  .welcome-stat-tail {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.4;
+  }
+
+  /* =========================================================
+     Testimonials — match the stat-card style; tight stars; centered text
+     ========================================================= */
+  .testimonials {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+  .testimonial {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 22px 20px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+  .t-stars {
+    display: block;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .t-body {
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.55;
+    margin: 0 auto;
+    max-width: 36ch;
+    text-align: center;
+  }
+
+  /* =========================================================
+     Date / time picker
+     ========================================================= */
+  .date-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .date-status {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+  .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .date-row input[type="date"],
+  .date-row input[type="time"] {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--line);
+    background: var(--surface-2);
+    padding: 0 14px;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    text-align: center;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .date-row input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(45, 91, 255, 0.10);
+  }
+
+  /* =========================================================
+     Cost — the big number IS the input
+     ========================================================= */
+  .cost-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px 0;
+    width: 100%;
+  }
+  .cost-amount {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    margin: 28px 0 6px;
+    cursor: text;
+    position: relative;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed rgba(14, 14, 18, 0.16);
+    transition: border-color .2s var(--ease);
+  }
+  .cost-amount:hover { border-bottom-color: rgba(14, 14, 18, 0.3); }
+  .cost-amount.is-focused { border-bottom-color: var(--primary); border-bottom-style: solid; }
+  .cost-amount .currency {
+    font-family: var(--serif);
+    font-size: 42px;
+    font-weight: 500;
+    color: var(--ink-3);
+    transition: color .15s var(--ease);
+  }
+  .cost-amount.has-value .currency,
+  .cost-amount.is-focused .currency { color: var(--ink); }
+
+  .cost-input {
+    font-family: var(--serif);
+    font-size: clamp(64px, 18vw, 88px);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    width: 1ch;
+    min-width: 1ch;
+    caret-color: var(--primary);
+  }
+  .cost-input::-webkit-outer-spin-button,
+  .cost-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .cost-measure {
+    position: absolute;
+    visibility: hidden;
+    white-space: pre;
+    font-family: var(--serif);
+    font-size: clamp(64px, 18vw, 88px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    pointer-events: none;
+  }
+
+  .cost-edit-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity .25s var(--ease);
+  }
+  .cost-edit-hint svg { width: 12px; height: 12px; }
+  .cost-edit-hint.is-hidden { opacity: 0; }
+
+  .cost-helper { font-size: 13px; color: var(--ink-3); margin-top: 18px; }
+  .preset-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 22px;
+  }
+  .preset {
+    padding: 8px 14px;
+    border-radius: 99px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    transition: all .15s var(--ease);
+  }
+  .preset:hover { border-color: var(--ink-3); color: var(--ink); }
+  .preset.active { background: var(--primary-tint); border-color: var(--primary); color: var(--primary); }
+
+  /* =========================================================
+     Savings — "You're saving $X"
+     ========================================================= */
+  .reveal {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px 0;
+    width: 100%;
+  }
+  .reveal-eyebrow {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(24px, 6vw, 28px);
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .reveal-amount {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(80px, 24vw, 120px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: linear-gradient(180deg, #FFB546 0%, #FF7A3D 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 16px 0 18px;
+    animation: pop .6s var(--ease) both;
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.8); opacity: 0; }
+    60%  { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .reveal-tail {
+    font-size: 15px;
+    color: var(--ink-2);
+    max-width: 32ch;
+    margin: 0 auto;
+  }
+
+  /* =========================================================
+     Stats — centered, big emoji, no source link
+     ========================================================= */
+  .stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 22px 20px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+  .stat-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+    line-height: 1;
+  }
+  .stat-text {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    margin: 0 auto;
+    max-width: 36ch;
+  }
+  .stat-text b { color: var(--ink); font-weight: 600; }
+
+  /* =========================================================
+     Final / trial — title at top, counter centered on screen
+     ========================================================= */
+  .trial-body {
+    /* Reserve room for sub + button */
+    padding-bottom: 130px;
+  }
+  .trial {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+  }
+  .trial-top {
+    position: absolute;
+    top: clamp(60px, 14vh, 120px);
+    left: 0; right: 0;
+    width: 100%;
+  }
+  .counter-block {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+  .counter-eyebrow {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .trial-eyebrow-top {
+    margin-bottom: 6px;
+  }
+  .counter {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 6px;
+    font-family: var(--serif);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    max-width: 100%;
+  }
+  .counter .unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .counter .num {
+    font-size: clamp(30px, 9vw, 52px);
+    line-height: 1;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    padding: 0 2px;
+  }
+  .counter .lbl {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  .counter .sep {
+    font-size: clamp(22px, 7vw, 38px);
+    color: var(--ink-3);
+    margin-bottom: 18px;
+    line-height: 1;
+  }
+  .trial-final-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(24px, 6vw, 28px);
+    line-height: 1.2;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .trial-final-sub {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin: 0 auto;
+    max-width: 32ch;
+    line-height: 1.45;
+    text-align: center;
+  }
+
+  .quit-list { padding-bottom: 8px; }
+  .quit-list .choice .icon { font-size: 24px; }
+  .pad-top-sm { padding-top: 8px; }
+
+  /* =========================================================
+     DSM-5 INTRO — substance emoji + clickable DSM-5 pill
+     ========================================================= */
+  .intro-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    padding: 24px 0;
+    gap: 24px;
+  }
+  .intro-copy {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .intro-sub {
+    font-size: 15.5px;
+    color: var(--ink-2);
+    margin: 0;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .dsm-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--ink);
+    color: white;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 6px 10px 6px 12px;
+    border-radius: 99px;
+    text-decoration: none;
+    margin-top: 2px;
+    transition: background .15s var(--ease), transform .12s var(--ease);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dsm-pill:hover { background: #1F1F26; }
+  .dsm-pill:active { transform: scale(0.96); }
+  .dsm-pill-arrow {
+    width: 12px;
+    height: 12px;
+  }
+
+  .intro-emoji {
+    width: 240px;
+    height: 240px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    margin: auto 0;
+  }
+  .intro-emoji-pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #D9D9D9;
+    animation: ripplePulse 2.4s ease-out infinite;
+    pointer-events: none;
+  }
+  .intro-emoji-pulse.p2 {
+    animation-delay: 1.2s;
+  }
+  .intro-emoji-icon {
+    position: relative;
+    font-size: 86px;
+    line-height: 1;
+    z-index: 1;
+  }
+  @keyframes ripplePulse {
+    0%   { transform: scale(0.5); opacity: 0; }
+    15%  { opacity: 0.22; }
+    100% { transform: scale(1.1); opacity: 0; }
+  }
+
+  /* =========================================================
+     DSM-5 QUESTIONS
+     ========================================================= */
+  .q-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 4px 0 14px;
+    text-align: center;
+  }
+  /* No footer on this screen — give a normal bottom buffer */
+  .q-body { padding-bottom: 24px; }
+  .q-text {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(22px, 6vw, 28px);
+    line-height: 1.25;
+    color: var(--ink);
+    margin: 0 auto 24px;
+    letter-spacing: -0.005em;
+    max-width: 24ch;
+    text-align: center;
+    transition: opacity .22s var(--ease), transform .22s var(--ease);
+  }
+  .q-text.swapping { opacity: 0; transform: translateY(8px); }
+
+  .q-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+  }
+  .q-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: left;
+    width: 100%;
+    transition: border-color .15s var(--ease), background .15s var(--ease), transform .12s var(--ease);
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+  .q-option:hover { background: var(--surface-2); }
+  .q-option:active { transform: scale(0.995); }
+  .q-option .dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .q-option .dot::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #fff;
+    transform: scale(0);
+    transition: transform .15s var(--ease);
+  }
+  .q-option .label-text { flex: 1; }
+  .q-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-tint);
+  }
+  .q-option.selected .dot {
+    border-color: var(--primary);
+    background: var(--primary);
+  }
+  .q-option.selected .dot::after { transform: scale(1); }
+
+  /* =========================================================
+     LOADING — circular ring + status + checks list
+     ========================================================= */
+  .loading-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 28px;
+    width: 100%;
+  }
+  .loading-ring {
+    width: 130px;
+    height: 130px;
+    position: relative;
+  }
+  .loading-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .loading-ring circle {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .loading-ring .track { stroke: rgba(14, 14, 18, 0.08); }
+  .loading-ring .fill {
+    stroke: var(--primary);
+    stroke-dasharray: 377;
+    stroke-dashoffset: 377;
+    transition: stroke-dashoffset .8s var(--ease);
+    filter: drop-shadow(0 4px 12px rgba(45, 91, 255, 0.25));
+  }
+  .loading-ring-label {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .loading-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-height: 64px;
+  }
+  .loading-status .step {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+    line-height: 1.35;
+    margin: 0;
+    transition: opacity .35s var(--ease), transform .35s var(--ease);
+  }
+  .loading-status .step.swapping { opacity: 0; transform: translateY(6px); }
+  .loading-status .sub {
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  .loading-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 280px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .loading-checks li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--ink-3);
+    transition: color .3s var(--ease);
+  }
+  .loading-checks li.done { color: var(--ink); }
+  .loading-checks .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(14, 14, 18, 0.15);
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: background .3s var(--ease), border-color .3s var(--ease);
+  }
+  .loading-checks li.done .dot {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .loading-checks .dot svg { width: 10px; height: 10px; opacity: 0; transition: opacity .3s var(--ease); color: white; }
+  .loading-checks li.done .dot svg { opacity: 1; }
+
+  /* =========================================================
+     RESULT — Snapshot with risk bar & insight cards
+     ========================================================= */
+  .result-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    padding: 0 0 16px;
+    gap: 22px;
+  }
+  .result-header {
+    width: 100%;
+    text-align: left;
+  }
+  .result-header .title { text-align: left; margin: 0; }
+  .result-header .lede { text-align: left; margin: 6px 0 0 !important; max-width: none; }
+
+  .result-card {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 22px 22px 20px;
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+  }
+  .risk-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .risk-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: #FFB546;
+    color: white;
+  }
+  .risk-pill.is-minimal { background: #16A34A; }
+  .risk-pill.is-mild    { background: #FFB546; }
+  .risk-pill.is-moderate{ background: #FF7A3D; }
+  .risk-pill.is-severe  { background: #DC4040; }
+  .risk-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .risk-bar {
+    position: relative;
+    height: 8px;
+    background: rgba(14, 14, 18, 0.06);
+    border-radius: 99px;
+    overflow: visible;
+  }
+  .risk-bar-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    background: linear-gradient(90deg, #16A34A 0%, #FFB546 50%, #DC4040 100%);
+    border-radius: 99px;
+    transition: width .8s var(--ease);
+  }
+  .risk-bar-marker {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--ink);
+    transform: translate(-50%, -50%);
+    transition: left .8s var(--ease);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .risk-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .risk-summary {
+    margin: 14px 0 0;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  .insights {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .insight-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px 14px;
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+  }
+  .insight-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .insight-eyebrow .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ink-3);
+  }
+  .insight-eyebrow .dot.is-mild { background: #16A34A; }
+  .insight-eyebrow .dot.is-blue { background: var(--primary); }
+  .insight-card h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
+  }
+  .insight-card p {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .result-tail {
+    width: 100%;
+    font-size: 13.5px;
+    color: var(--ink-2);
+    text-align: left;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* =========================================================
+     CHART — integrated layout, animated, fixed reference data
+     ========================================================= */
+  .chart-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    width: 100%;
+    padding: 0;
+    gap: 14px;
+  }
+  .chart-stage .title { text-align: left; }
+  .chart-stage .lede { text-align: left; max-width: none; margin: 0 0 4px !important; }
+
+  .chart-frame {
+    width: 100%;
+    position: relative;
+    padding: 4px 0 0;
+  }
+  .chart-frame svg { width: 100%; height: auto; display: block; }
+
+  .chart-legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .chart-legend.top { margin-bottom: 12px; }
+  .chart-legend .item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  .chart-legend .swatch {
+    width: 10px; height: 10px; border-radius: 50%; background: #B5B5BD;
+  }
+  .chart-legend .item.with-mia .swatch { background: var(--primary); }
+
+  .chart-axis {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 4px 0;
+    font-size: 11px;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  /* Path draw-in animation */
+  .chart-line {
+    stroke-dasharray: 700;
+    stroke-dashoffset: 700;
+    transition: stroke-dashoffset 1.6s ease-out;
+  }
+  .chart-line.is-mia {
+    transition-delay: 0.3s;
+  }
+  .chart-line.is-animated {
+    stroke-dashoffset: 0;
+  }
+  #chartMiaEnd, #chartMiaEndHalo {
+    transition: opacity .5s ease-out 1.7s;
+  }
+  #chartMiaEnd.is-shown, #chartMiaEndHalo.is-shown { opacity: 1; }
+
+  /* =========================================================
+     PERSONALIZED PLAN
+     ========================================================= */
+  .plan-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    width: 100%;
+    padding: 8px 0 16px;
+  }
+  .plan-stage .title { text-align: left; }
+
+  .plan-deco {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+  }
+  .plan-deco .sparkle {
+    position: absolute;
+    font-size: 14px;
+    color: var(--primary);
+    animation: sparkle 3s ease-in-out infinite;
+  }
+  .plan-deco .s1 { top: 4px; left: 8px; }
+  .plan-deco .s2 { top: 18px; right: 4px; animation-delay: 0.7s; font-size: 18px; }
+  .plan-deco .s3 { bottom: 2px; left: 22px; animation-delay: 1.5s; }
+  @keyframes sparkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50%      { opacity: 1; transform: scale(1.1); }
+  }
+
+  .plan-summary {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 26px;
+    overflow: hidden;
+  }
+  .plan-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-2, #EFEFF3);
+  }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: var(--primary-tint);
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .plan-text { text-align: left; flex: 1; }
+  .plan-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .plan-value {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+
+  .plan-section {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--ink);
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+    text-align: left;
+  }
+  .plan-section em {
+    font-style: italic;
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .plan-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+  .plan-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+    position: relative;
+  }
+  .plan-card h4 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 15.5px;
+    color: var(--ink);
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .plan-card-icon { font-size: 18px; line-height: 1; }
+  .plan-card p {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    margin: 0;
+  }
+  .plan-card-highlight {
+    background: var(--primary-tint);
+    border-color: rgba(45, 91, 255, 0.22);
+  }
+  .plan-card-tag {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 99px;
+    margin-bottom: 8px;
+  }
+
+  .plan-tail {
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    margin: 0 0 16px;
+    text-align: left;
+  }
+
+  /* =========================================================
+     Edit toolbar — toggle inline text editing + save HTML
+     ========================================================= */
+  .edit-toolbar {
+    position: fixed;
+    top: max(env(safe-area-inset-top), 12px);
+    right: 12px;
+    z-index: 9999;
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: saturate(140%) blur(12px);
+    -webkit-backdrop-filter: saturate(140%) blur(12px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+    box-shadow: var(--shadow-md);
+    font-family: var(--sans);
+  }
+  .edit-toolbar button {
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    transition: background .15s var(--ease), color .15s var(--ease);
+    white-space: nowrap;
+  }
+  .edit-toolbar button:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .edit-toolbar button.active {
+    background: var(--ink);
+    color: #fff;
+  }
+  .edit-toolbar .saved-flash {
+    color: #1aa264;
+  }
+  body.editing [data-edit]:not(:focus) {
+    outline: 1px dashed rgba(45, 91, 255, 0.45);
+    outline-offset: 2px;
+    border-radius: 3px;
+    cursor: text;
+  }
+  body.editing [data-edit]:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    background: var(--primary-tint);
+    border-radius: 3px;
+  }
+
+  /* Structural editing — duplicate / delete blocks */
+  body.editing [data-block] {
+    position: relative;
+  }
+  body.editing [data-block]:hover {
+    outline: 1px dashed rgba(45, 91, 255, 0.55);
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
+  .struct-tools {
+    display: none;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    z-index: 50;
+    gap: 2px;
+    background: var(--ink);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+    box-shadow: var(--shadow-md);
+    user-select: none;
+  }
+  body.editing [data-block]:hover > .struct-tools,
+  body.editing [data-block]:focus-within > .struct-tools {
+    display: inline-flex;
+  }
+  .struct-tools button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 99px;
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s var(--ease);
+  }
+  .struct-tools button:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .struct-tools button.del:hover {
+    background: rgba(255, 90, 90, 0.85);
+  }
+</style>
+</head>
+<body class="">
+
+<!-- Edit toolbar — inline text editing + save -->
+
+
+<div class="bg-stage" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+</div>
+
+<div class="app">
+  <div class="frame">
+
+    <header class="topbar">
+      <button class="icon-btn" id="backBtn" aria-label="Back" hidden="">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
+      <div class="progress" id="progress" aria-hidden="true" style="visibility: hidden;"><div class="pip done"></div><div class="pip done"></div><div class="pip done"></div><div class="pip done"></div><div class="pip done"></div><div class="pip done"></div><div class="pip done"></div><div class="pip active" style="--fill: 1;"></div></div>
+      <button class="skip" id="skipBtn" hidden="">Skip</button>
+    </header>
+
+    <main class="screens" id="screens">
+
+      <!-- ============== 1. WELCOME ============== -->
+      <section class="screen active" data-screen="welcome">
+        <div class="screen-body is-centered welcome-body">
+          <div class="flex-spacer" aria-hidden="true"></div>
+          <div class="welcome-top">
+            <p class="welcome-eyebrow">Take this 5 minutes test.</p>
+            <h1 class="welcome-title">Understand how critical is your addiction<br></h1>
+            <p class="welcome-sub">Based on the DSM-5 clinical checklist
+for addiction severity.
+</p>
+          </div>
+          <div class="flex-spacer" aria-hidden="true"></div>
+          <div class="welcome-credits">
+            <div class="welcome-stars" aria-label="4.5 out of 5 stars">★ ★ ★ ★ ★</div>
+            <div class="welcome-stat-num">1,600,000 
+people have talked to Mia</div>
+            <div class="welcome-stat-tail">Start your journey</div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Get started</button>
+        </div>
+      </section>
+
+      <!-- ============== 2. NAME ============== -->
+      <section class="screen" data-screen="name">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title">What should we call you?</h2>
+          <p class="lede">We'll use your name to make this space feel like yours.</p>
+          <input class="field" type="text" id="nameInput" placeholder="Your name" autocomplete="given-name" enterkeyhint="next">
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="" id="nameNext">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 3. WHAT TO QUIT ============== -->
+      <section class="screen" data-screen="quit">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title" id="quitTitle">Vito, what are you working to overcome?</h2>
+          <p class="lede">Pick the one that fits best — you can change it later.</p>
+          <div class="choices quit-list" id="quitList" role="radiogroup" aria-label="Choose what to overcome"><button type="button" class="choice selected" role="radio" aria-checked="true" data-id="alcohol">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🥃</span>
+        <span class="label-text">Alcohol</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="nicotine">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🚬</span>
+        <span class="label-text">Nicotine</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="cannabis">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🌿</span>
+        <span class="label-text">Cannabis</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="gambling">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🎰</span>
+        <span class="label-text">Gambling</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="cocaine">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">❄️</span>
+        <span class="label-text">Cocaine</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="opioids">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">💊</span>
+        <span class="label-text">Opioids</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="meth">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">💎</span>
+        <span class="label-text">Meth</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="mdma">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🌈</span>
+        <span class="label-text">MDMA</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="selfharm">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🩹</span>
+        <span class="label-text">Self-harm</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="sex">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">💋</span>
+        <span class="label-text">Sex</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="pornography">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">🔞</span>
+        <span class="label-text">Pornography</span>
+      </button><button type="button" class="choice" role="radio" aria-checked="false" data-id="other">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">✨</span>
+        <span class="label-text">Something else</span>
+      </button></div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="" id="quitNext">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 4. TESTIMONIALS ============== -->
+      <section class="screen" data-screen="testimonials">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title">You're in good company</h2>
+          <p class="lede">A few words from people already on this path.</p>
+          <div class="testimonials">
+            <article class="testimonial">
+              <div class="t-stars" aria-label="Five stars">★ ★ ★ ★ ★</div>
+              <p class="t-body">"Hi Mia, thank you for your wise words. You've helped me through tough moments and opened my eyes to different ways of thinking. A great companion during my studies and self-reflection."</p>
+            </article>
+            <article class="testimonial">
+              <div class="t-stars" aria-label="Five stars">★ ★ ★ ★ ★</div>
+              <p class="t-body">"Mia has helped when I was at my lowest and helped me build myself up. Her kind and wise words have helped me build up the confidence I was lacking and showed me the success I have been doing. Thank you for creating her."</p>
+            </article>
+            <article class="testimonial">
+              <div class="t-stars" aria-label="Five stars">★ ★ ★ ★ ★</div>
+              <p class="t-body">"Truly exceptional. Mia is like a most trusted friend. I was skeptical at first, but now I have asked her (don't worry, I know she's not real) multiple questions and have found her responses to be absolutely brilliant, faultless."</p>
+            </article>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== 5. WHEN ============== -->
+      <section class="screen" data-screen="when">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title">When did you take your first step?</h2>
+          <p class="lede">If you haven't yet, that's okay too — we can start the clock today.</p>
+          <div class="date-card">
+            <div class="date-status" id="dateStatus">Just now</div>
+            <div class="date-row">
+              <input type="date" id="quitDate">
+              <input type="time" id="quitTime">
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Continue</button>
+          <button class="btn btn-ghost center" id="haventQuit">I haven't started yet</button>
+        </div>
+      </section>
+
+      <!-- ============== 6. COST — editable big number ============== -->
+      <section class="screen" data-screen="cost">
+        <div class="screen-body is-centered">
+          <p class="eyebrow">Cost analysis</p>
+          <h2 class="title">How much do you spend on this per week?</h2>
+          <p class="lede">A rough estimate is fine — we'll do the math.</p>
+
+          <div class="cost-stage">
+            <div class="cost-amount has-value" id="costDisplay">
+              <span class="currency">$</span>
+              <input class="cost-input" id="costInput" type="text" inputmode="decimal" value="0" aria-label="Weekly spend" enterkeyhint="done" style="width: 88px;">
+              <span class="cost-measure" id="costMeasure">50</span>
+            </div>
+            <div class="cost-edit-hint" id="costHint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
+              </svg>
+              Tap to edit
+            </div>
+            <div class="preset-row" id="presetRow">
+              <button class="preset" data-amount="20">$20</button>
+              <button class="preset active" data-amount="50">$50</button>
+              <button class="preset" data-amount="100">$100</button>
+              <button class="preset" data-amount="200">$200</button>
+            </div>
+            <p class="cost-helper">Per week</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="" id="costNext">See what you'll save</button>
+        </div>
+      </section>
+
+      <!-- ============== 7. SAVINGS REVEAL ============== -->
+      <section class="screen" data-screen="savings">
+        <div class="screen-body is-centered">
+          <div class="reveal">
+            <p class="reveal-eyebrow">You're saving</p>
+            <div class="reveal-amount" id="savingsAmount">$200</div>
+            <p class="reveal-tail">a month by being sober. That's some serious money back in your pocket.</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== DSM-INTRO — substance-specific entry point ============== -->
+      <section class="screen" data-screen="dsm-intro">
+        <div class="screen-body is-centered">
+          <div class="intro-stage">
+            <div class="intro-copy">
+              <h2 class="title" id="introTitle">Let's estimate the intensity of your alcohol use</h2>
+              <p class="intro-sub">Based on the DSM-5 clinical checklist<br>for addiction severity.</p>
+              <a class="dsm-pill" href="https://www.psychiatry.org/psychiatrists/practice/dsm" target="_blank" rel="noopener">
+                DSM-5
+                <svg class="dsm-pill-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7"></path><path d="M7 7h10v10"></path>
+                </svg>
+              </a>
+            </div>
+            <div class="intro-emoji" aria-hidden="true">
+              <span class="intro-emoji-pulse"></span>
+              <span class="intro-emoji-pulse p2"></span>
+              <span class="intro-emoji-icon" id="introEmoji">🥃</span>
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Start assessment</button>
+        </div>
+      </section>
+
+      <!-- ============== DSM-QUESTIONS — single-tap auto-advance ============== -->
+      <section class="screen" data-screen="dsm-questions">
+        <div class="screen-body is-centered q-body">
+          <p class="q-eyebrow" id="qProgressLabel">Question 11 of 11</p>
+          <h2 class="q-text" id="qText">Have you felt off when you haven't drinking for a while — shaky, anxious, sweaty, or unwell?</h2>
+          <div class="q-options" id="qOptions" role="radiogroup">
+            <button class="q-option" type="button" data-value="0" role="radio" aria-checked="false" disabled="">
+              <span class="dot"></span><span class="label-text">Never</span>
+            </button>
+            <button class="q-option" type="button" data-value="1" role="radio" aria-checked="false" disabled="">
+              <span class="dot"></span><span class="label-text">Once or twice</span>
+            </button>
+            <button class="q-option selected" type="button" data-value="2" role="radio" aria-checked="true" disabled="">
+              <span class="dot"></span><span class="label-text">Sometimes</span>
+            </button>
+            <button class="q-option" type="button" data-value="3" role="radio" aria-checked="false" disabled="">
+              <span class="dot"></span><span class="label-text">Frequently</span>
+            </button>
+            <button class="q-option" type="button" data-value="4" role="radio" aria-checked="false" disabled="">
+              <span class="dot"></span><span class="label-text">Very frequently</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== BUILDING-PLAN — loading screen ============== -->
+      <section class="screen" data-screen="building-plan">
+        <div class="screen-body is-centered">
+          <div class="loading-stage">
+            <div class="loading-ring" aria-hidden="true">
+              <svg viewBox="0 0 130 130">
+                <circle class="track" cx="65" cy="65" r="60"></circle>
+                <circle class="fill" id="loadingFill" cx="65" cy="65" r="60" style="stroke-dashoffset: 0;"></circle>
+              </svg>
+              <div class="loading-ring-label" id="loadingPct">100%</div>
+            </div>
+            <div class="loading-status">
+              <div class="step" id="loadingStep">Almost ready for you…</div>
+              <div class="sub">This will only take a moment</div>
+            </div>
+            <ul class="loading-checks" id="loadingChecks">
+              <li data-step="0" class="done">
+                <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                Reviewing your answers
+              </li>
+              <li data-step="1" class="done">
+                <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                Identifying patterns
+              </li>
+              <li data-step="2" class="done">
+                <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                Shaping your plan
+              </li>
+              <li data-step="3" class="done">
+                <span class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+                Almost ready
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" id="loadingNext">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== DSM-RESULT — personalized snapshot ============== -->
+      <section class="screen" data-screen="dsm-result">
+        <div class="screen-body is-centered">
+          <div class="result-stage">
+            <div class="result-header">
+              <h2 class="title" id="resultTitle">Vito's Snapshot</h2>
+              <p class="lede" id="resultLede" style="margin: 6px auto 0;">Based on your answers, here's where you're at.</p>
+            </div>
+
+            <div class="result-card">
+              <div class="risk-row">
+                <span class="risk-pill is-severe" id="riskPill">Strong</span>
+                <span class="risk-label">Risk Level</span>
+              </div>
+              <div class="risk-bar" aria-hidden="true">
+                <div class="risk-bar-fill" id="riskBarFill"></div>
+                <div class="risk-bar-marker" id="riskBarMarker"></div>
+              </div>
+              <div class="risk-bar-labels">
+                <span>Low</span>
+                <span>High</span>
+              </div>
+              <p class="risk-summary" id="riskSummary">Strong patterns showing up. Acknowledging this takes real courage.</p>
+            </div>
+
+            <div class="insights">
+              <article class="insight-card">
+                <div class="insight-eyebrow"><span class="dot is-mild"></span>YOUR STRENGTH</div>
+                <h3 id="strengthTitle">Real courage</h3>
+                <p id="strengthBody">Naming this takes guts. You're already doing the hardest part — the rest can be supported.</p>
+              </article>
+              <article class="insight-card">
+                <div class="insight-eyebrow"><span class="dot is-blue"></span>NEXT FOCUS</div>
+                <h3 id="focusTitle">A plan + a person</h3>
+                <p id="focusBody">Combine Mia with a healthcare provider or trusted person — together, they make the strongest support.</p>
+              </article>
+            </div>
+
+            <p class="result-tail" id="resultTail">Reaching out for support is a sign of strength, not weakness. We will walk this with you.</p>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== CHART — fixed reference, animated ============== -->
+      <section class="screen" data-screen="chart">
+        <div class="screen-body is-centered">
+          <div class="chart-stage">
+            <h2 class="title" style="margin: 0 0 8px;">Your recovery, visualized</h2>
+            <p class="lede" style="margin: 0;">Day one to day ninety, two outcomes.</p>
+
+            <div class="chart-frame">
+              <div class="chart-legend top">
+                <div class="item with-mia"><span class="swatch"></span>With Mia</div>
+                <div class="item"><span class="swatch"></span>Without structure</div>
+              </div>
+              <svg id="chartSvg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Recovery trajectory chart">
+                <!-- baseline -->
+                <line x1="20" y1="180" x2="305" y2="180" stroke="#E7E7EC" stroke-width="1"></line>
+
+                <!-- Without structure: subtle waves around a near-flat plateau -->
+                <path id="chartWithout" d="M 20 180 Q 40 135 75 105 T 145 112 T 215 104 T 305 115" fill="none" stroke="#B5B5BD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chart-line is-animated"></path>
+
+                <!-- With Mia: smooth concave rise -->
+                <path id="chartMia" d="M 20 180 C 35 145, 90 55, 305 22" fill="none" stroke="#2D5BFF" stroke-width="3" stroke-linecap="round" class="chart-line is-mia is-animated"></path>
+
+                <!-- end marker -->
+                <circle id="chartMiaEnd" cx="305" cy="22" r="5" fill="#2D5BFF" opacity="0" class="is-shown"></circle>
+                <circle id="chartMiaEndHalo" cx="305" cy="22" r="9" fill="#2D5BFF" fill-opacity="0.18" opacity="0" class="is-shown"></circle>
+              </svg>
+              <div class="chart-axis">
+                <span>Day 1</span>
+                <span>30 days</span>
+                <span>90 days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">I'm ready</button>
+        </div>
+      </section>
+
+      <!-- ============== STATS (kept) ============== -->
+      <section class="screen" data-screen="stats">
+        <div class="screen-body is-centered">
+          <div class="pad-top-sm"></div>
+          <h2 class="title">The science is on your side</h2>
+          <p class="lede">A few things research has shown about people walking this path.</p>
+          <div class="stats">
+            <article class="stat">
+              <span class="stat-icon" aria-hidden="true">🧠</span>
+              <p class="stat-text">After three months in recovery, people show <b>measurable improvements</b> in focus, memory, and decision-making.</p>
+            </article>
+            <article class="stat">
+              <span class="stat-icon" aria-hidden="true">💪</span>
+              <p class="stat-text">Within weeks, brain function begins to <b>rebound</b> — clearer thinking starts sooner than most expect.</p>
+            </article>
+            <article class="stat">
+              <span class="stat-icon" aria-hidden="true">📈</span>
+              <p class="stat-text">A <b>50% reduction in relapse rates</b> is achievable with consistent use of digital recovery tools.</p>
+            </article>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Continue</button>
+        </div>
+      </section>
+
+      <!-- ============== PERSONALIZED PLAN ============== -->
+      <section class="screen" data-screen="plan">
+        <div class="screen-body is-centered">
+          <div class="plan-stage">
+            <div class="plan-deco" aria-hidden="true">
+              <span class="sparkle s1">✦</span>
+              <span class="sparkle s2">✦</span>
+              <span class="sparkle s3">✦</span>
+            </div>
+            <h2 class="title" id="planTitle" style="margin: 0 0 24px;">Vito, here's your plan</h2>
+
+            <div class="plan-summary">
+              <div class="plan-row">
+                <div class="plan-icon" id="planQuitIcon">🥃</div>
+                <div class="plan-text">
+                  <div class="plan-eyebrow">Quitting</div>
+                  <div class="plan-value" id="planQuit">Alcohol</div>
+                </div>
+              </div>
+              <div class="plan-row">
+                <div class="plan-icon">📅</div>
+                <div class="plan-text">
+                  <div class="plan-eyebrow">Started</div>
+                  <div class="plan-value" id="planStarted">April 29, 2026</div>
+                </div>
+              </div>
+              <div class="plan-row">
+                <div class="plan-icon">📊</div>
+                <div class="plan-text">
+                  <div class="plan-eyebrow">Your profile</div>
+                  <div class="plan-value" id="planProfile">Strong signals — moving with care</div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="plan-section">Your journey starts here</h3>
+            <div class="plan-cards">
+              <article class="plan-card">
+                <h4><span class="plan-card-icon">🧩</span>Know your patterns</h4>
+                <p>Patterns are easier to spot when someone walks through them with you. Mia's conversation surfaces the ones you've been living with on autopilot.</p>
+              </article>
+              <article class="plan-card">
+                <h4><span class="plan-card-icon">🛡️</span>Question what's underneath</h4>
+                <p>A pattern is a clue. Underneath it is a belief. Underneath that is a story. Mia helps you walk it back until the whole thing makes sense.</p>
+              </article>
+            </div>
+
+            <h3 class="plan-section" id="planMidTitle" style="margin-top: 12px;">Vito, you're <em>already further</em> than most</h3>
+            <p class="plan-tail">Making a plan takes real courage. Most people never get this far — you already have.</p>
+
+            <div class="plan-cards">
+              <article class="plan-card">
+                <h4><span class="plan-card-icon">💬</span>Meet Mia, your 24/7 companion</h4>
+                <p>A companion, always there ready to support you absolutely in any moment on this process.&nbsp;</p>
+              </article>
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <button class="btn btn-primary" data-next="">Start my recovery</button>
+        </div>
+      </section>
+
+      <!-- ============== 11. FINAL / TRIAL ============== -->
+      <section class="screen" data-screen="trial">
+        <div class="screen-body is-centered trial-body">
+          <div class="trial" id="trialMain">
+            <div class="trial-top">
+              <p class="counter-eyebrow trial-eyebrow-top">Don't stop here.</p>
+              <h2 class="trial-final-title" id="trialTitle">Mia has a plan for you.</h2>
+            </div>
+            <div class="counter-block" aria-live="polite">
+              <p class="counter-eyebrow">You've stayed sober for</p>
+              <div class="counter" id="counter">
+                <div class="unit"><span class="num" id="cDays">00</span><span class="lbl">Days</span></div>
+                <span class="sep">:</span>
+                <div class="unit"><span class="num" id="cHours">00</span><span class="lbl">Hrs</span></div>
+                <span class="sep">:</span>
+                <div class="unit"><span class="num" id="cMins">16</span><span class="lbl">Min</span></div>
+                <span class="sep">:</span>
+                <div class="unit"><span class="num" id="cSecs">23</span><span class="lbl">Sec</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screen-footer">
+          <p class="trial-final-sub">Continue the conversation in the app.</p>
+          <a class="btn btn-primary" id="finalBtn" href="https://miaa.onelink.me/pWMS/addictionform" target="_blank" rel="noopener">Download the app now and get a free trial</a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  // =====================================================
+  // State
+  // =====================================================
+  const STATE = {
+    name: '',
+    quit: null,
+    quitDate: null,
+    haventQuitYet: false,
+    weeklyCost: 0,
+    answers: new Array(11).fill(null),
+    currentQ: 0,
+  };
+
+  const SCREENS = [
+    'welcome', 'name', 'quit', 'testimonials', 'when', 'cost', 'savings',
+    'dsm-intro', 'dsm-questions', 'building-plan',
+    'dsm-result', 'chart', 'stats', 'plan', 'trial'
+  ];
+  let currentIndex = 0;
+
+  // =====================================================
+  // Data
+  // =====================================================
+  const QUIT_OPTIONS = [
+    { id: 'alcohol',     label: 'Alcohol',         icon: '🥃' },
+    { id: 'nicotine',    label: 'Nicotine',        icon: '🚬' },
+    { id: 'cannabis',    label: 'Cannabis',        icon: '🌿' },
+    { id: 'gambling',    label: 'Gambling',        icon: '🎰' },
+    { id: 'cocaine',     label: 'Cocaine',         icon: '❄️' },
+    { id: 'opioids',     label: 'Opioids',         icon: '💊' },
+    { id: 'meth',        label: 'Meth',            icon: '💎' },
+    { id: 'mdma',        label: 'MDMA',            icon: '🌈' },
+    { id: 'selfharm',    label: 'Self-harm',       icon: '🩹' },
+    { id: 'sex',         label: 'Sex',             icon: '💋' },
+    { id: 'pornography', label: 'Pornography',     icon: '🔞' },
+    { id: 'other',       label: 'Something else',  icon: '✨' },
+  ];
+
+  // =====================================================
+  // DSM-5 question profiles & templates
+  // =====================================================
+  const SUBSTANCE_PROFILES = {
+    alcohol:     { intensityNoun: 'alcohol use',                analyzeAs: 'alcohol',   gerund: 'drinking',         noun: 'drinking',     thing: 'alcohol',           hazard: 'like driving or being somewhere unsafe',                  withdrawal: 'shaky, anxious, sweaty, or unwell' },
+    nicotine:    { intensityNoun: 'nicotine use',               analyzeAs: 'nicotine',  gerund: 'smoking or vaping', noun: 'smoking',     thing: 'nicotine',          hazard: 'like smoking in bed or where you shouldn\'t',             withdrawal: 'restless, irritable, anxious, or unable to focus' },
+    cannabis:    { intensityNoun: 'cannabis use',               analyzeAs: 'cannabis',  gerund: 'using cannabis',   noun: 'cannabis use', thing: 'cannabis',          hazard: 'like driving or being in unsafe situations',              withdrawal: 'irritable, restless, or unable to sleep well' },
+    gambling:    { intensityNoun: 'gambling',                   analyzeAs: 'gambling',  gerund: 'gambling',         noun: 'gambling',     thing: 'gambling',          hazard: 'like risking money you couldn\'t afford to lose',          withdrawal: 'restless, on edge, or unable to sit still' },
+    cocaine:     { intensityNoun: 'cocaine use',                analyzeAs: 'cocaine',   gerund: 'using',            noun: 'use',          thing: 'cocaine',           hazard: 'like being in unsafe places or with unsafe people',       withdrawal: 'flat, exhausted, or unable to feel okay' },
+    opioids:     { intensityNoun: 'opioid use',                 analyzeAs: 'opioid',    gerund: 'using',            noun: 'use',          thing: 'opioids',           hazard: 'like driving or being in risky situations',               withdrawal: 'achy, sweaty, anxious, or unwell' },
+    meth:        { intensityNoun: 'meth use',                   analyzeAs: 'meth',      gerund: 'using',            noun: 'use',          thing: 'meth',              hazard: 'like being in unsafe situations',                         withdrawal: 'exhausted, foggy, or unable to feel okay' },
+    mdma:        { intensityNoun: 'MDMA use',                   analyzeAs: 'MDMA',      gerund: 'using MDMA',       noun: 'MDMA use',     thing: 'MDMA',              hazard: 'like being in unsafe situations',                         withdrawal: 'low, anxious, or drained' },
+    selfharm:    { intensityNoun: 'relationship with self-harm', analyzeAs: null,       gerund: 'acting on these urges', noun: 'this',    thing: 'this pattern',      hazard: 'in a way that put you at risk',                           withdrawal: 'tense, overwhelmed, or like you couldn\'t cope' },
+    sex:         { intensityNoun: 'sexual behavior',            analyzeAs: null,        gerund: 'engaging in this', noun: 'this behavior', thing: 'this behavior',    hazard: 'in unsafe ways or with people you didn\'t want to',       withdrawal: 'restless, anxious, or unable to settle' },
+    pornography: { intensityNoun: 'porn use',                   analyzeAs: null,        gerund: 'using porn',       noun: 'use',          thing: 'porn',              hazard: 'in places or moments you knew you shouldn\'t',             withdrawal: 'restless, anxious, or unable to focus' },
+    other:       { intensityNoun: 'current pattern',            analyzeAs: null,        gerund: 'doing this',       noun: 'this',         thing: 'this',              hazard: 'in risky situations',                                     withdrawal: 'off, anxious, or unwell' },
+  };
+
+  function getQuestions(substanceId) {
+    const p = SUBSTANCE_PROFILES[substanceId] || SUBSTANCE_PROFILES.other;
+    // 11 questions mirroring DSM-5 SUD criteria, in friendly language
+    return [
+      `Have you ended up ${p.gerund} more than you meant to, or for longer than you planned?`,
+      `Have you wanted to cut back on ${p.noun} but found it hard to follow through?`,
+      `Do you spend a lot of time ${p.gerund}, thinking about it, or recovering from it?`,
+      `Do you sometimes feel a strong urge or craving for ${p.thing}?`,
+      `Has ${p.noun} gotten in the way of things you needed to do — at work, school, or home?`,
+      `Has ${p.noun} caused tension or distance with people who matter to you?`,
+      `Have you skipped or stepped back from things you used to enjoy because of ${p.noun}?`,
+      `Have you been in risky situations because of ${p.noun} — ${p.hazard}?`,
+      `Have you kept ${p.gerund} even when it was making things worse — physically or emotionally?`,
+      `Do you find you need more ${p.thing} now to feel the same effect as before?`,
+      `Have you felt off when you haven't ${p.gerund} for a while — ${p.withdrawal}?`,
+    ];
+  }
+
+
+  // =====================================================
+  // Utils
+  // =====================================================
+  const $ = (s, root = document) => root.querySelector(s);
+  const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
+  const formatNumber = n => new Intl.NumberFormat('en-US').format(Math.round(n));
+  const pad2 = n => String(n).padStart(2, '0');
+
+  const screensEl = $('#screens');
+  const progressEl = $('#progress');
+  const backBtn = $('#backBtn');
+  const skipBtn = $('#skipBtn');
+
+  // =====================================================
+  // Progress + chrome
+  // =====================================================
+  function buildProgress() {
+    progressEl.innerHTML = '';
+    // Show progress for the data-collection part of the flow:
+    // name(1) quit(2) testimonials(3) when(4) cost(5) savings(6) dsm-intro(7) dsm-questions(8)
+    // Total: 8 segments. Subsequent screens (loading/result/chart/stats/widget/trial)
+    // are post-input — progress bar hides there.
+    const totalSegments = 8;
+    for (let i = 0; i < totalSegments; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'pip';
+      progressEl.appendChild(pip);
+    }
+  }
+  function updateChrome() {
+    const screen = SCREENS[currentIndex];
+    const noProgressScreens = ['welcome', 'building-plan', 'dsm-result', 'chart', 'stats', 'plan', 'trial'];
+    const noBackScreens = ['welcome', 'building-plan', 'trial'];
+    backBtn.hidden = noBackScreens.includes(screen);
+    skipBtn.hidden = true; // not used in this flow
+
+    if (noProgressScreens.includes(screen)) {
+      progressEl.style.visibility = 'hidden';
+    } else {
+      progressEl.style.visibility = 'visible';
+      // Map screen → pip index (0-based)
+      const pipIndexMap = {
+        'name': 0, 'quit': 1, 'testimonials': 2, 'when': 3,
+        'cost': 4, 'savings': 5, 'dsm-intro': 6, 'dsm-questions': 7,
+      };
+      const activePipIndex = pipIndexMap[screen];
+      const pips = $$('.pip', progressEl);
+      pips.forEach((p, i) => {
+        if (screen === 'dsm-questions') {
+          // Pip 7 fills proportionally based on currentQ (0..10) → 1..11
+          if (i < activePipIndex) {
+            p.classList.add('done'); p.classList.remove('active');
+            p.style.removeProperty('--fill');
+          } else if (i === activePipIndex) {
+            p.classList.remove('done'); p.classList.add('active');
+            const frac = Math.min(1, (STATE.currentQ + (STATE.answers[STATE.currentQ] !== null ? 1 : 0)) / 11);
+            p.style.setProperty('--fill', frac);
+          } else {
+            p.classList.remove('done', 'active');
+            p.style.removeProperty('--fill');
+          }
+        } else {
+          p.style.removeProperty('--fill');
+          p.classList.toggle('done', i < activePipIndex);
+          p.classList.toggle('active', i === activePipIndex);
+        }
+      });
+    }
+  }
+
+  // =====================================================
+  // Navigation
+  // =====================================================
+  function goTo(index, { focusInput = true } = {}) {
+    if (index < 0 || index >= SCREENS.length) return;
+    const prev = $$('.screen', screensEl).find(s => s.classList.contains('active'));
+    const nextEl = $(`.screen[data-screen="${SCREENS[index]}"]`, screensEl);
+    if (!nextEl) return;
+    if (prev) prev.classList.remove('active');
+    nextEl.classList.remove('active');
+    void nextEl.offsetWidth;
+    nextEl.classList.add('active');
+    currentIndex = index;
+    updateChrome();
+    const body = $('.screen-body', nextEl);
+    if (body) body.scrollTop = 0;
+    if (focusInput) {
+      const screen = SCREENS[index];
+      if (screen === 'name') setTimeout(() => $('#nameInput').focus(), 350);
+    }
+    onEnter(SCREENS[index]);
+  }
+  function next() { goTo(Math.min(currentIndex + 1, SCREENS.length - 1)); }
+  function back() {
+    // Within DSM questions, back goes to previous question first
+    if (SCREENS[currentIndex] === 'dsm-questions' && STATE.currentQ > 0) {
+      STATE.currentQ--;
+      renderQuestion();
+      updateChrome();
+      return;
+    }
+    goTo(Math.max(currentIndex - 1, 0));
+  }
+  backBtn.addEventListener('click', back);
+  skipBtn.addEventListener('click', next);
+  $$('[data-next]').forEach(btn => btn.addEventListener('click', next));
+
+  function onEnter(screen) {
+    if (window.__editPaused) return;
+    if (screen === 'savings') updateSavings();
+    if (screen === 'quit') updateQuitTitle();
+    if (screen === 'dsm-intro') updateIntroTitle();
+    if (screen === 'dsm-questions') { STATE.currentQ = 0; renderQuestion(); }
+    if (screen === 'building-plan') runLoadingSequence();
+    if (screen === 'dsm-result') renderResult();
+    if (screen === 'chart') renderChart();
+    if (screen === 'plan') renderPlan();
+    if (screen === 'trial') { updateTrialTitle(); startCounter(); }
+    else stopCounter();
+  }
+
+  // =====================================================
+  // 2. Name
+  // =====================================================
+  const nameInput = $('#nameInput');
+  const nameNext = $('#nameNext');
+  nameInput.addEventListener('input', e => {
+    const v = e.target.value.trim();
+    STATE.name = v;
+    nameNext.disabled = v.length < 1;
+  });
+  nameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !nameNext.disabled) { e.preventDefault(); next(); }
+  });
+
+  // =====================================================
+  // 3. Quit list
+  // =====================================================
+  function buildQuitList() {
+    const list = $('#quitList');
+    list.innerHTML = '';
+    QUIT_OPTIONS.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice';
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('aria-checked', 'false');
+      btn.dataset.id = opt.id;
+      btn.innerHTML = `
+        <span class="dot" aria-hidden="true"></span>
+        <span class="icon" aria-hidden="true">${opt.icon}</span>
+        <span class="label-text">${opt.label}</span>
+      `;
+      btn.addEventListener('click', () => {
+        $$('.choice', list).forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('selected');
+        btn.setAttribute('aria-checked', 'true');
+        STATE.quit = opt;
+        $('#quitNext').disabled = false;
+      });
+      list.appendChild(btn);
+    });
+  }
+  function updateQuitTitle() {
+    const t = $('#quitTitle');
+    t.textContent = STATE.name
+      ? `${STATE.name}, what are you working to overcome?`
+      : 'What are you working to overcome?';
+  }
+
+  // =====================================================
+  // 5. When
+  // =====================================================
+  const dateInput = $('#quitDate');
+  const timeInput = $('#quitTime');
+  const dateStatus = $('#dateStatus');
+  function setDateToNow() {
+    const now = new Date();
+    dateInput.value = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+    timeInput.value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    updateDateStatus();
+  }
+  function updateDateStatus() {
+    if (!dateInput.value) { dateStatus.textContent = '—'; return; }
+    const dt = new Date(`${dateInput.value}T${timeInput.value || '00:00'}`);
+    if (isNaN(dt)) { dateStatus.textContent = '—'; return; }
+    STATE.quitDate = dt.toISOString();
+    STATE.haventQuitYet = false;
+    const now = new Date();
+    const diffMs = now - dt;
+    const diffMin = Math.round(diffMs / 60000);
+    const diffH = Math.round(diffMs / 3600000);
+    const diffD = Math.round(diffMs / 86400000);
+    if (Math.abs(diffMin) < 5) dateStatus.textContent = 'Just now';
+    else if (Math.abs(diffH) < 1) dateStatus.textContent = `${diffMin} min ${diffMin >= 0 ? 'ago' : 'from now'}`;
+    else if (Math.abs(diffD) < 1) dateStatus.textContent = `${diffH} hour${Math.abs(diffH) === 1 ? '' : 's'} ${diffH >= 0 ? 'ago' : 'from now'}`;
+    else dateStatus.textContent = `${Math.abs(diffD)} day${Math.abs(diffD) === 1 ? '' : 's'} ${diffD >= 0 ? 'ago' : 'from now'}`;
+  }
+  dateInput.addEventListener('change', updateDateStatus);
+  timeInput.addEventListener('change', updateDateStatus);
+  $('#haventQuit').addEventListener('click', () => {
+    STATE.haventQuitYet = true;
+    setDateToNow();
+    next();
+  });
+
+  // =====================================================
+  // 6. Cost — big number is the input
+  // =====================================================
+  const costInput = $('#costInput');
+  const costMeasure = $('#costMeasure');
+  const costDisplay = $('#costDisplay');
+  const costNext = $('#costNext');
+  const presetRow = $('#presetRow');
+  const costHint = $('#costHint');
+
+  function autosizeCost() {
+    costMeasure.textContent = costInput.value || '0';
+    const w = costMeasure.offsetWidth;
+    costInput.style.width = Math.max(w, 28) + 'px';
+  }
+  function setCost(amount, { fromInput = false } = {}) {
+    let n = Number(amount);
+    if (!isFinite(n) || n < 0) n = 0;
+    STATE.weeklyCost = n;
+    if (!fromInput) costInput.value = n > 0 ? String(n) : '0';
+    costDisplay.classList.toggle('has-value', n > 0);
+    costNext.disabled = n <= 0;
+    autosizeCost();
+    $$('.preset', presetRow).forEach(p => {
+      p.classList.toggle('active', Number(p.dataset.amount) === n);
+    });
+  }
+  costInput.addEventListener('input', e => {
+    let v = e.target.value.replace(/[^\d.]/g, '');
+    const firstDot = v.indexOf('.');
+    if (firstDot !== -1) v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+    e.target.value = v;
+    setCost(v || 0, { fromInput: true });
+  });
+  costInput.addEventListener('focus', () => {
+    costDisplay.classList.add('is-focused');
+    costHint.classList.add('is-hidden');
+    if (costInput.value === '0') {
+      costInput.value = '';
+      autosizeCost();
+    }
+    // Move cursor to end
+    setTimeout(() => {
+      const len = costInput.value.length;
+      try { costInput.setSelectionRange(len, len); } catch (e) {}
+    }, 0);
+  });
+  costInput.addEventListener('blur', () => {
+    costDisplay.classList.remove('is-focused');
+    if (costInput.value === '' || costInput.value === '.') {
+      costInput.value = '0';
+      setCost(0);
+    }
+  });
+  costInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !costNext.disabled) { e.preventDefault(); costInput.blur(); next(); }
+  });
+  costDisplay.addEventListener('click', () => costInput.focus());
+  $$('.preset', presetRow).forEach(p => {
+    p.addEventListener('click', () => setCost(Number(p.dataset.amount)));
+  });
+
+  // =====================================================
+  // 7. Savings — multiply by 4
+  // =====================================================
+  function updateSavings() {
+    const monthly = STATE.weeklyCost * 4;
+    $('#savingsAmount').textContent = `$${formatNumber(monthly)}`;
+  }
+
+  // =====================================================
+  // 8. Goal & Reason builders
+  // =====================================================
+  // (removed in DSM-5 flow)
+
+  // =====================================================
+  // DSM-5 questions — single-tap auto-advance
+  // =====================================================
+  const qText = $('#qText');
+  const qOptions = $('#qOptions');
+  const qProgressLabel = $('#qProgressLabel');
+
+  function updateIntroTitle() {
+    const profile = SUBSTANCE_PROFILES[STATE.quit ? STATE.quit.id : 'other'] || SUBSTANCE_PROFILES.other;
+    $('#introTitle').textContent = `Let's estimate the intensity of your ${profile.intensityNoun}`;
+    $('#introEmoji').textContent = STATE.quit ? STATE.quit.icon : '🎯';
+  }
+
+  function renderQuestion() {
+    const substanceId = STATE.quit ? STATE.quit.id : 'other';
+    const questions = getQuestions(substanceId);
+    const i = STATE.currentQ;
+    const question = questions[i];
+
+    // Animate question text swap
+    qText.classList.add('swapping');
+    setTimeout(() => {
+      qText.textContent = question;
+      qText.classList.remove('swapping');
+    }, 180);
+
+    // Update sub-progress
+    qProgressLabel.textContent = `Question ${i + 1} of 11`;
+
+    // Reset / restore selection (in case user navigates back)
+    const prev = STATE.answers[i];
+    $$('.q-option', qOptions).forEach(btn => {
+      const v = Number(btn.dataset.value);
+      const sel = prev !== null && v === prev;
+      btn.classList.toggle('selected', sel);
+      btn.setAttribute('aria-checked', sel ? 'true' : 'false');
+      btn.disabled = false;
+    });
+  }
+
+  let qAdvanceTimer = null;
+  $$('.q-option', qOptions).forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Guard against double-taps mid-advance
+      if (qAdvanceTimer) return;
+      const v = Number(btn.dataset.value);
+      STATE.answers[STATE.currentQ] = v;
+      // Visual selection
+      $$('.q-option', qOptions).forEach(b => {
+        const sel = b === btn;
+        b.classList.toggle('selected', sel);
+        b.setAttribute('aria-checked', sel ? 'true' : 'false');
+        b.disabled = true; // lock during advance
+      });
+      updateChrome();
+      // Auto-advance after a brief beat so the selection registers
+      qAdvanceTimer = setTimeout(() => {
+        qAdvanceTimer = null;
+        if (STATE.currentQ < 10) {
+          STATE.currentQ++;
+          renderQuestion();
+          updateChrome();
+        } else {
+          next(); // → building-plan
+        }
+      }, 320);
+    });
+  });
+
+  // =====================================================
+  // Loading screen — ring + step + checks (substance-specific stage 2)
+  // =====================================================
+  let loadingTimer = null;
+  function runLoadingSequence() {
+    const profile = SUBSTANCE_PROFILES[STATE.quit ? STATE.quit.id : 'other'] || SUBSTANCE_PROFILES.other;
+    const analyzeMsg = profile.analyzeAs
+      ? `Analyzing your ${profile.analyzeAs} patterns…`
+      : 'Analyzing your patterns…';
+    const stages = [
+      'Let me take a look at your answers…',
+      analyzeMsg,
+      "I'm putting together your personalized plan…",
+      'Almost ready for you…',
+    ];
+    const stepEl = $('#loadingStep');
+    const pctEl = $('#loadingPct');
+    const fillEl = $('#loadingFill');
+    const checks = $$('#loadingChecks li');
+    const nextBtn = $('#loadingNext');
+
+    // Reset
+    nextBtn.disabled = true;
+    checks.forEach(c => c.classList.remove('done'));
+    fillEl.style.strokeDashoffset = '377';
+    pctEl.textContent = '0%';
+    stepEl.textContent = stages[0];
+
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+
+    let stage = 0;
+    let pct = 0;
+    const totalDuration = 4800; // ms
+    const tickMs = 60;
+    const incPerTick = (100 / (totalDuration / tickMs));
+
+    loadingTimer = setInterval(() => {
+      pct = Math.min(100, pct + incPerTick);
+      pctEl.textContent = `${Math.round(pct)}%`;
+      fillEl.style.strokeDashoffset = String(377 - (pct / 100) * 377);
+
+      // Stage transitions at 25/50/75
+      const targetStage = pct >= 75 ? 3 : pct >= 50 ? 2 : pct >= 25 ? 1 : 0;
+      if (targetStage !== stage) {
+        // Mark previous check done
+        checks[stage] && checks[stage].classList.add('done');
+        stage = targetStage;
+        stepEl.classList.add('swapping');
+        setTimeout(() => {
+          stepEl.textContent = stages[stage];
+          stepEl.classList.remove('swapping');
+        }, 200);
+      }
+
+      if (pct >= 100) {
+        clearInterval(loadingTimer);
+        loadingTimer = null;
+        checks[3] && checks[3].classList.add('done');
+        nextBtn.disabled = false;
+        // Auto-advance after a small beat
+        setTimeout(() => {
+          if (SCREENS[currentIndex] === 'building-plan') next();
+        }, 700);
+      }
+    }, tickMs);
+  }
+
+  $('#loadingNext').addEventListener('click', () => {
+    if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
+    next();
+  });
+
+  // =====================================================
+  // Result screen — risk level + personalized message
+  // =====================================================
+  function computeSeverity() {
+    // Score each answer 0–4 (Never=0, Once or twice=1, Sometimes=2, Frequently=3, Very frequently=4).
+    // Max possible = 11 × 4 = 44. Risk percentage = total / max × 100.
+    const total = STATE.answers.reduce((s, a) => s + (a == null ? 0 : a), 0);
+    const max = STATE.answers.length * 4;
+    const pct = max > 0 ? (total / max) * 100 : 0;
+    let level;
+    if (pct >= 75) level = 'severe';
+    else if (pct >= 50) level = 'moderate';
+    else if (pct >= 25) level = 'mild';
+    else level = 'minimal';
+    return { level, total, max, pct };
+  }
+
+  function renderResult() {
+    const { level, pct } = computeSeverity();
+    const name = STATE.name || '';
+
+    const pill = $('#riskPill');
+    const fill = $('#riskBarFill');
+    const marker = $('#riskBarMarker');
+    const summary = $('#riskSummary');
+    const title = $('#resultTitle');
+    const lede = $('#resultLede');
+    const strengthTitle = $('#strengthTitle');
+    const strengthBody = $('#strengthBody');
+    const focusTitle = $('#focusTitle');
+    const focusBody = $('#focusBody');
+    const tail = $('#resultTail');
+    const eyebrowDot = document.querySelector('.insight-eyebrow .dot.is-mild') || document.querySelector('.insight-eyebrow .dot');
+
+    // Title
+    title.textContent = name ? `${name}'s Snapshot` : 'Your Snapshot';
+    lede.textContent = "Based on your answers, here's where you're at.";
+
+    // Reset pill class
+    pill.classList.remove('is-minimal', 'is-mild', 'is-moderate', 'is-severe');
+
+    let pillLabel, pillClass, summaryText;
+    let strengthH, strengthP, focusH, focusP, tailText;
+    const fillPct = Math.round(pct);
+
+    if (level === 'minimal') {
+      pillClass = 'is-minimal'; pillLabel = 'Low';
+      summaryText = "No strong patterns detected. This is a good place to stay aware and protect what's working.";
+      strengthH = 'A solid foundation';
+      strengthP = "What you've shared suggests this isn't taking up much space right now. That's worth protecting.";
+      focusH = 'Staying aware';
+      focusP = 'A light touch — gentle check-ins help you notice if anything starts to shift.';
+      tailText = 'Keep this awareness — small habits now are easier than big shifts later.';
+    } else if (level === 'mild') {
+      pillClass = 'is-mild'; pillLabel = 'Mild';
+      summaryText = 'Early patterns detected. This is the ideal time to build healthier habits.';
+      strengthH = 'Catching it early';
+      strengthP = 'Most people wait far longer. Starting now puts you ahead of the curve.';
+      focusH = 'Building structure';
+      focusP = 'A daily routine with check-ins will help you break the cycle before it deepens.';
+      tailText = 'Most people in this range build real momentum with steady, structured support.';
+    } else if (level === 'moderate') {
+      pillClass = 'is-moderate'; pillLabel = 'Moderate';
+      summaryText = 'Real patterns showing up. Naming this is the first step — and you just did.';
+      strengthH = 'Honest awareness';
+      strengthP = "You've named what's hard. That self-awareness is exactly what makes change possible.";
+      focusH = 'Steady support';
+      focusP = 'Daily tools and a place to talk through urges will help when willpower runs thin.';
+      tailText = "You're not alone in this. A clear path forward — with the right tools — is within reach.";
+    } else {
+      pillClass = 'is-severe'; pillLabel = 'Strong';
+      summaryText = 'Strong patterns showing up. Acknowledging this takes real courage.';
+      strengthH = 'Real courage';
+      strengthP = "Naming this takes guts. You're already doing the hardest part — the rest can be supported.";
+      focusH = 'A plan + a person';
+      focusP = 'Combine Mia with a healthcare provider or trusted person — together, they make the strongest support.';
+      tailText = 'Reaching out for support is a sign of strength, not weakness. We will walk this with you.';
+    }
+
+    pill.classList.add(pillClass);
+    pill.textContent = pillLabel;
+    summary.textContent = summaryText;
+    strengthTitle.textContent = strengthH;
+    strengthBody.textContent = strengthP;
+    focusTitle.textContent = focusH;
+    focusBody.textContent = focusP;
+    tail.textContent = tailText;
+
+    // Reset to 0 then set target in next frame so the CSS transition animates from 0 → fillPct.
+    fill.style.width = '0%';
+    marker.style.left = '0%';
+    void fill.offsetWidth;
+    requestAnimationFrame(() => {
+      fill.style.width = `${fillPct}%`;
+      marker.style.left = `${fillPct}%`;
+    });
+    // Synchronous fallback so the value is correct even if rAF never fires (background tab, preview headless, etc.)
+    setTimeout(() => {
+      if (fill.style.width === '0%') {
+        fill.style.width = `${fillPct}%`;
+        marker.style.left = `${fillPct}%`;
+      }
+    }, 50);
+  }
+
+  // =====================================================
+  // Chart — fixed reference data, animated draw-in on entry
+  // =====================================================
+  function renderChart() {
+    const miaEl = $('#chartMia');
+    const withoutEl = $('#chartWithout');
+    const endEl = $('#chartMiaEnd');
+    const haloEl = $('#chartMiaEndHalo');
+
+    // Reset
+    miaEl.classList.remove('is-animated');
+    withoutEl.classList.remove('is-animated');
+    endEl.classList.remove('is-shown');
+    haloEl.classList.remove('is-shown');
+
+    // Force reflow so the reset takes effect before re-animating
+    void miaEl.getBoundingClientRect();
+
+    // Trigger animations on next frame
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        withoutEl.classList.add('is-animated');
+        miaEl.classList.add('is-animated');
+        endEl.classList.add('is-shown');
+        haloEl.classList.add('is-shown');
+      });
+    });
+  }
+
+  // =====================================================
+  // Personalized plan
+  // =====================================================
+  function renderPlan() {
+    const name = STATE.name || 'You';
+    $('#planTitle').textContent = `${name}, here's your plan`;
+    $('#planMidTitle').innerHTML = `${name}, you're <em>already further</em> than most`;
+
+    if (STATE.quit) {
+      $('#planQuit').textContent = STATE.quit.label;
+      $('#planQuitIcon').textContent = STATE.quit.icon || '🎯';
+    }
+
+    if (STATE.haventQuitYet) {
+      $('#planStarted').textContent = 'Today';
+    } else if (STATE.quitDate) {
+      const dt = new Date(STATE.quitDate);
+      const opts = { month: 'long', day: 'numeric', year: 'numeric' };
+      $('#planStarted').textContent = dt.toLocaleDateString('en-US', opts);
+    } else {
+      $('#planStarted').textContent = 'Today';
+    }
+
+    const { level } = computeSeverity();
+    const profileText = {
+      minimal: 'Low signals — staying aware',
+      mild:    'Mild signals — catching it early',
+      moderate:'Moderate signals — building support',
+      severe:  'Strong signals — moving with care',
+    };
+    $('#planProfile').textContent = profileText[level];
+  }
+
+
+  // =====================================================
+  // 11. Trial — live counter
+  // =====================================================
+  let counterInterval = null;
+  let counterStart = null;
+  function startCounter() {
+    stopCounter();
+    // Use the date the user selected on the "When did you take your first step?" screen.
+    // If they tapped "I haven't started yet", quitDate was set to now → counter starts at 00.
+    // Otherwise, counter immediately reflects real elapsed sober time.
+    counterStart = STATE.quitDate ? new Date(STATE.quitDate).getTime() : Date.now();
+    tickCounter();
+    counterInterval = setInterval(tickCounter, 1000);
+  }
+  function stopCounter() {
+    if (counterInterval) { clearInterval(counterInterval); counterInterval = null; }
+  }
+  function tickCounter() {
+    const ms = Math.max(0, Date.now() - counterStart);
+    const totalSec = Math.floor(ms / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    $('#cDays').textContent = pad2(days);
+    $('#cHours').textContent = pad2(hours);
+    $('#cMins').textContent = pad2(mins);
+    $('#cSecs').textContent = pad2(secs);
+  }
+  function updateTrialTitle() {
+    const t = $('#trialTitle');
+    t.textContent = STATE.name
+      ? `${STATE.name}, Mia has a plan for you.`
+      : 'Mia has a plan for you.';
+  }
+
+  // Link to App Store — no extra JS needed for the CTA itself.
+
+  // =====================================================
+  // Keyboard handling — keep input in view above keyboard
+  // =====================================================
+  document.addEventListener('focusin', e => {
+    if (e.target.matches('input, textarea')) {
+      setTimeout(() => e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250);
+    }
+  });
+
+  // =====================================================
+  // Init
+  // =====================================================
+  buildProgress();
+  buildQuitList();
+  setDateToNow();
+  setCost(0);
+  autosizeCost();
+  updateChrome();
+
+  // =====================================================
+  // Edit mode — toggle inline text editing + save HTML
+  // =====================================================
+  (function setupEditMode() {
+    const toolbar = document.getElementById('editToolbar');
+    const toggleBtn = document.getElementById('editToggle');
+    const saveBtn = document.getElementById('editSave');
+    if (!toolbar || !toggleBtn || !saveBtn) return;
+
+    // CSS selectors that point to text the user might want to tweak.
+    // Inputs / icons / SVG are intentionally excluded.
+    const EDITABLE_SELECTORS = [
+      '.welcome-eyebrow', '.welcome-title', '.welcome-sub',
+      '.welcome-stat-num', '.welcome-stat-tail', '.welcome-stars',
+      '.eyebrow', '.title', '.lede',
+      '.btn', '.skip',
+      '.t-body', '.t-stars',
+      '.intro-sub', '.dsm-pill',
+      '.q-eyebrow', '.q-text', '.q-option .label-text',
+      '.loading-status .step', '.loading-status .sub',
+      '.loading-checks li',
+      '.risk-pill', '.risk-label', '.risk-summary',
+      '.risk-bar-labels span',
+      '.insight-eyebrow', '.insight-card h3', '.insight-card p',
+      '.result-tail',
+      '.chart-legend .item', '.chart-axis span',
+      '.stat-text',
+      '.plan-eyebrow', '.plan-value', '.plan-section', '.plan-tail',
+      '.plan-card h4', '.plan-card p',
+      '.trial-final-title', '.trial-final-sub',
+      '.counter-eyebrow', '.lbl',
+      '.cost-helper', '.preset',
+      '.reveal-eyebrow', '.reveal-tail',
+      '.date-status',
+      '.quit-row .label',
+      '.cost-edit-hint',
+    ].join(',');
+
+    // Block-level elements that can be duplicated or deleted as a unit.
+    const STRUCTURAL_SELECTORS = [
+      '.testimonial',
+      '.stat',
+      '.plan-card',
+      '.insight-card',
+      '.plan-row',
+      '.preset',
+      '.q-option',
+      '.loading-checks > li',
+      '.quit-row',
+      '.choice',
+    ].join(',');
+
+    let editing = false;
+
+    function getEditableEls() {
+      return document.querySelectorAll(EDITABLE_SELECTORS);
+    }
+    function getStructuralEls() {
+      return document.querySelectorAll(STRUCTURAL_SELECTORS);
+    }
+
+    function setEditing(on) {
+      editing = on;
+      // Pause JS-driven re-renders so user edits don't get clobbered
+      // when navigating between screens. (See onEnter override below.)
+      window.__editPaused = on;
+      document.body.classList.toggle('editing', on);
+      toggleBtn.classList.toggle('active', on);
+      toggleBtn.textContent = on ? 'Editing… (click to stop)' : 'Edit text';
+
+      getEditableEls().forEach(el => {
+        if (on) enableEditingOn(el); else disableEditingOn(el);
+      });
+      getStructuralEls().forEach(el => {
+        if (on) attachStructTools(el); else detachStructTools(el);
+      });
+    }
+
+    function enableEditingOn(el) {
+      el.setAttribute('contenteditable', 'true');
+      el.setAttribute('data-edit', '');
+      el.setAttribute('spellcheck', 'true');
+      el.addEventListener('keydown', handleEnterAsBr);
+      el.addEventListener('paste', sanitizePaste);
+    }
+    function disableEditingOn(el) {
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('data-edit');
+      el.removeAttribute('spellcheck');
+      el.removeEventListener('keydown', handleEnterAsBr);
+      el.removeEventListener('paste', sanitizePaste);
+    }
+
+    // Insert a clean <br> on Enter. Default contenteditable behavior in
+    // Chrome/Safari wraps lines in <div>s which serializes oddly —
+    // <br>s are simpler and predictable.
+    function handleEnterAsBr(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      document.execCommand('insertLineBreak');
+    }
+
+    // Strip rich-text formatting from pastes — keep only plain text.
+    function sanitizePaste(e) {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    }
+
+    // Inject a small floating "duplicate / delete" toolbar onto block elements.
+    function attachStructTools(el) {
+      if (el.querySelector(':scope > .struct-tools')) return;
+      el.setAttribute('data-block', '');
+      const tools = document.createElement('div');
+      tools.className = 'struct-tools';
+      tools.contentEditable = 'false';
+      tools.setAttribute('data-edit-ui', '');
+      tools.innerHTML = `
+        <button type="button" class="dup" title="Duplicate">⧉</button>
+        <button type="button" class="del" title="Delete">✕</button>
+      `;
+      tools.addEventListener('mousedown', e => e.preventDefault());
+      tools.addEventListener('click', e => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        e.stopPropagation();
+        if (btn.classList.contains('dup')) duplicateBlock(el);
+        else if (btn.classList.contains('del')) el.remove();
+      });
+      el.appendChild(tools);
+    }
+    function detachStructTools(el) {
+      el.removeAttribute('data-block');
+      const tools = el.querySelector(':scope > .struct-tools');
+      if (tools) tools.remove();
+    }
+    function duplicateBlock(el) {
+      const clone = el.cloneNode(true);
+      clone.querySelectorAll('.struct-tools').forEach(n => n.remove());
+      clone.querySelectorAll('[data-edit]').forEach(n => {
+        n.removeAttribute('contenteditable');
+        n.removeAttribute('data-edit');
+        n.removeAttribute('spellcheck');
+      });
+      clone.removeAttribute('data-block');
+      el.parentNode.insertBefore(clone, el.nextSibling);
+      clone.querySelectorAll(EDITABLE_SELECTORS).forEach(enableEditingOn);
+      if (clone.matches(EDITABLE_SELECTORS)) enableEditingOn(clone);
+      clone.querySelectorAll(STRUCTURAL_SELECTORS).forEach(attachStructTools);
+      if (clone.matches(STRUCTURAL_SELECTORS)) attachStructTools(clone);
+    }
+
+    toggleBtn.addEventListener('click', () => setEditing(!editing));
+
+    saveBtn.addEventListener('click', () => {
+      // Snapshot current DOM
+      const clone = document.documentElement.cloneNode(true);
+
+      // Remove the edit toolbar from the saved copy
+      const ct = clone.querySelector('#editToolbar');
+      if (ct) ct.remove();
+
+      // Clean any editing state
+      const cb = clone.querySelector('body');
+      if (cb) cb.classList.remove('editing');
+      clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+      clone.querySelectorAll('[data-edit]').forEach(el => el.removeAttribute('data-edit'));
+      clone.querySelectorAll('[data-block]').forEach(el => el.removeAttribute('data-block'));
+      clone.querySelectorAll('[data-edit-ui]').forEach(el => el.remove());
+      clone.querySelectorAll('.struct-tools').forEach(el => el.remove());
+      clone.querySelectorAll('[spellcheck]').forEach(el => el.removeAttribute('spellcheck'));
+
+      // Reset to the welcome screen so the saved file opens fresh
+      clone.querySelectorAll('.screen.active').forEach(el => el.classList.remove('active'));
+      const welcome = clone.querySelector('.screen[data-screen="welcome"]');
+      if (welcome) welcome.classList.add('active');
+
+      const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dsm-5-onboarding-edited.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      // Brief saved feedback
+      const orig = saveBtn.textContent;
+      saveBtn.textContent = 'Saved ✓';
+      saveBtn.classList.add('saved-flash');
+      setTimeout(() => {
+        saveBtn.textContent = orig;
+        saveBtn.classList.remove('saved-flash');
+      }, 1400);
+    });
+  })();
+</script>
+
+
+<div id="extension-dpfof"></div><div id="extension-dpfof"></div></body></html>

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/addiction/next-question.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/addiction/analyze.js": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  }
+}
