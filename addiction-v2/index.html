@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#F4F4F6">
 <meta name="robots" content="noindex, nofollow">
-<title>Mia AI — Patterns Check (v2)</title>
+<title>Mia AI — Spot the Pattern</title>
 <meta property="og:title" content="Mia — A patterns check">
 <meta property="og:description" content="A short, gentle self-reflection. Not a clinical assessment.">
 <link rel="icon" href="../favicon.png" type="image/png">
@@ -42,19 +42,32 @@
 <link rel="stylesheet" href="../addiction/styles.css">
 <link rel="stylesheet" href="./styles.css">
 </head>
-<!-- bg-state starts as `hidden` so the rose radial is faded out for the
-     intro-voice screen. intro-voice.js flips this to `welcome` when it
-     transitions to the welcome screen, which lets the radial slide in
-     from the bottom in step with the screen change. -->
-<body data-bg-state="hidden">
+<!-- bg-state starts as `welcome` so the rose radial sits at the bottom
+     of the frame for the welcome screen (now the first screen). When
+     the user taps "Start the test", intro-voice.js flips this to
+     `hidden` so the radial fades out while the orb takes the stage. -->
+<body data-bg-state="welcome">
 
 <div class="app">
   <div class="frame">
     <!-- Background lives INSIDE the frame so the radial is clipped
          by the frame's overflow:hidden on desktop. On mobile the
-         frame fills the viewport, so it behaves the same way. -->
+         frame fills the viewport, so it behaves the same way.
+         The orb iframe is a sibling of .hero-glow so the two share
+         a stacking context — they morph between bg-states in lockstep
+         (welcome ↔ voice ↔ top), reading as a single element
+         transforming through the flow. -->
     <div class="bg-stage" aria-hidden="true">
       <div class="hero-glow"></div>
+      <iframe
+        id="orbFrame"
+        class="iv-orb"
+        src="./orb.html"
+        title="Mia"
+        tabindex="-1"
+        aria-hidden="true"
+        scrolling="no"
+        frameborder="0"></iframe>
     </div>
 
     <header class="topbar">
@@ -68,52 +81,37 @@
 
     <main class="screens" id="screens">
 
-      <!-- ============== 0. INTRO-VOICE (v2 only) ==============
-           Plays a short Mia greeting over an animated orb, with the
-           script revealed word by word in time with the audio.
-           After the audio ends + brief pause, intro-voice.js swaps
-           this screen out and reveals welcome below. -->
-      <section class="screen active" data-screen="intro-voice">
-        <!-- .is-asleep keeps the orb scaled up to fill the frame, dimmed
-             to 80% opacity. JS removes the class once playback starts
-             (either via autoplay or via the user tapping the prompt),
-             which scales the orb down to its natural size. -->
-        <div class="iv-stage is-asleep">
-          <!-- The orb runs in its own iframe to keep its three.js
-               module + canvas isolated from the rest of the page. -->
-          <iframe
-            id="orbFrame"
-            class="iv-orb"
-            src="./orb.html"
-            title="Mia"
-            tabindex="-1"
-            aria-hidden="true"
-            scrolling="no"
-            frameborder="0"></iframe>
-          <!-- One container per phrase, each populated with word-spans.
-               Hidden by default — intro-voice.js shows + animates one at a time. -->
-          <div class="iv-text" id="ivText" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <!-- ============== 1. WELCOME ============== -->
-      <section class="screen" data-screen="welcome">
+      <!-- ============== 0. WELCOME (now the first screen in v2) ============== -->
+      <section class="screen active" data-screen="welcome">
         <div class="screen-body welcome-body">
           <!-- Substance carousel: rotates through the full list, infinite loop.
                Decorative — context for what's coming next, not a selection. -->
           <div class="welcome-carousel" aria-hidden="true">
             <div class="welcome-carousel-track" id="welcomeCarousel"></div>
           </div>
-          <!-- Hero text block, white-on-blue per design -->
+          <!-- Hero text block — copy + layout follow the v2 Figma reference -->
           <div class="welcome-hero">
-            <p class="welcome-eyebrow">Take this 5-minute test.</p>
             <p class="welcome-stars" aria-label="Five stars">★ ★ ★ ★ ★</p>
-            <h1 class="welcome-title">Understand how critical is your addiction</h1>
-            <p class="welcome-sub">Based on DSM-5-inspired signals — not a clinical diagnosis.</p>
+            <h1 class="welcome-title">Meet Mia and understand how critical your addiction is</h1>
+            <p class="welcome-sub">Based on DSM-5 clinical criteria.</p>
+            <p class="welcome-italic">Only takes 5-minutes.</p>
           </div>
         </div>
         <div class="screen-footer">
-          <button class="btn btn-white" id="welcomeNext">Start your journey</button>
+          <button class="btn btn-white" id="welcomeNext">Start the test</button>
+        </div>
+      </section>
+
+      <!-- ============== 1. INTRO-VOICE (v2 only) ==============
+           Plays a short Mia greeting. The orb itself lives in
+           .bg-stage above (so it can morph in from the welcome radial
+           position and morph out to the top radial position without
+           re-mounting). This screen only carries the captions. -->
+      <section class="screen" data-screen="intro-voice">
+        <div class="iv-stage">
+          <!-- One container per phrase, each populated with word-spans.
+               Hidden by default — intro-voice.js shows + animates one at a time. -->
+          <div class="iv-text" id="ivText" aria-live="polite"></div>
         </div>
       </section>
 
@@ -438,7 +436,7 @@
           <div class="trial">
             <div class="trial-top">
               <p class="counter-eyebrow trial-eyebrow-top">Don’t stop here.</p>
-              <h2 class="trial-final-title" id="trialTitle">Mia has a plan for you.</h2>
+              <h2 class="trial-final-title" id="trialTitle">Mia has already a plan for you.</h2>
             </div>
             <div class="counter-block" aria-live="polite">
               <p class="counter-eyebrow">You’ve been on this path for</p>

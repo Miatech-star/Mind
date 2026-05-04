@@ -1489,8 +1489,8 @@
   function updateTrialTitle() {
     const t = $('#trialTitle');
     t.textContent = STATE.name
-      ? STATE.name + ', Mia has a plan for you.'
-      : 'Mia has a plan for you.';
+      ? STATE.name + ', Mia has already a plan for you.'
+      : 'Mia has already a plan for you.';
   }
 
   // =====================================================================

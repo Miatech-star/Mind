@@ -42,7 +42,70 @@
    are forced to white in the base sheet). */
 .welcome-eyebrow,
 .welcome-title { color: var(--ink); }
-.welcome-sub   { color: var(--ink-2); }
+.welcome-sub   { color: var(--ink); }
+
+/* Stars — amber per the v2 Figma reference, slightly tighter
+   tracking so they read as one cluster. */
+.welcome-stars {
+  color: #FFB546;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px;
+}
+
+/* Italic 5-minute line — sits below the sub, serif italic.
+   Slots into the existing welcome stagger animation via the
+   shared selector list at the bottom of /addiction/styles.css
+   (we reuse those keyframes by mirroring the timing here). */
+.welcome-italic {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 12px 0 0;
+}
+.screen[data-screen="welcome"].active .welcome-italic {
+  animation: welcome-stagger 1300ms cubic-bezier(.22, 1, .36, 1) both;
+  animation-delay: 1000ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen[data-screen="welcome"].active .welcome-italic { animation: none; }
+}
+
+/* Welcome hero copy details — heavier title weight + tracking
+   per the Figma spec, sub copy gets normal weight.
+   text-wrap: balance / pretty prevent the last word from being
+   orphaned on its own line (e.g. "addiction is" → "is" widow on
+   narrow widths). pretty wins where supported (Chrome 117+,
+   Safari 17.5+); balance is the broader fallback. */
+.welcome-title {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  max-width: none;
+  text-wrap: balance;
+  text-wrap: pretty;
+}
+.welcome-sub {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+/* Welcome content fades out on its way to the intro-voice screen so
+   the morph reads as one continuous beat: welcome dims → orb appears
+   in its place. The radial transformation runs in parallel via the
+   bg-state change to "voice" (handled below). 350 ms is short enough
+   that the user sees the morph land, long enough to avoid flicker. */
+.screen[data-screen="welcome"].is-leaving > .screen-body,
+.screen[data-screen="welcome"].is-leaving > .screen-footer {
+  transition: opacity 350ms cubic-bezier(.4, 0, .2, 1);
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* Body-state-driven white text on the questionnaire screens. */
 body[data-bg-state^="top"] .title,
@@ -167,9 +230,10 @@ body[data-bg-state="building"] .hero-glow {
 
 /* =========================================================
    Intro-voice screen (v2 only).
-   Orb is centered horizontally, slightly above true vertical
-   center per the Figma spec. Text sits below it in a fixed-size
-   container, so phrases never push each other down.
+   The orb itself lives in .bg-stage as a sibling of .hero-glow
+   so it can morph between bg-state positions in lockstep with
+   the radial. This screen carries only the captions, anchored
+   below the orb's natural center.
    ========================================================= */
 .iv-stage {
   position: relative;
@@ -180,57 +244,97 @@ body[data-bg-state="building"] .hero-glow {
   align-items: center;
 }
 
-/* The orb iframe — non-interactive. Two states:
-     - .iv-stage.is-asleep: orb fills the screen at 2.5× scale,
-       80% opacity (the user is on the splash with "Tap when you're
-       ready" centered on top of it).
-     - default (awake): orb at its natural 506 px size (10% larger
-       than the previous 460 px), full opacity. The wake-up
-       transition runs over 1100 ms with a soft ease so the orb
-       feels like it's settling into place, not snapping.
-   The transform always carries an explicit scale() so transitions
-   between states interpolate cleanly. */
+/* =========================================================
+   Orb ↔ radial morph (v2 only).
+   The orb iframe and .hero-glow share three bg-states:
+     - welcome: parked at the bottom (top:95%) where the radial
+                lives, scaled up to match the radial's visible
+                size. Orb is opacity:0 here — the radial owns
+                the frame.
+     - voice:   centered (top:50%) at the orb's natural size.
+                Orb fades in, radial shrinks down to orb size
+                and fades out.
+     - top*:    parked near the top (top:5% / -5%) at the
+                radial's visible size. Orb fades out, radial
+                fades back in.
+   Both elements use the same 900ms duration + ease on top,
+   opacity, and transform, so the eye reads the pair as one
+   element transforming through the flow.
+
+   Scale math: orb iframe is 506 px; radial natural width is
+   185% of the frame (~814 px on a 440-px frame). 814 / 506 ≈
+   1.61 — orb scaled to 1.61 matches the radial's visible
+   footprint, and the radial scaled to 0.622 (= 1 / 1.61)
+   matches the orb's footprint. */
 .iv-orb {
   position: absolute;
   left: 50%;
-  top: calc(50% - 28px);
-  transform: translate(-50%, -50%) scale(1);
+  top: 50%;
   width: 506px;
   max-width: 96%;
   aspect-ratio: 1 / 1;
   border: 0;
   background: transparent;
   pointer-events: none;
-  opacity: 1;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  z-index: 1; /* above .hero-glow within .bg-stage */
+  will-change: top, opacity, transform;
   transition:
-    top 260ms linear,
-    opacity 1100ms cubic-bezier(.4, 0, .2, 1),
-    transform 1100ms cubic-bezier(.4, 0, .2, 1);
+    top 900ms var(--bg-ease),
+    opacity 900ms var(--bg-ease),
+    transform 900ms var(--bg-ease);
 }
-/* Asleep — orb fills the frame vertically and sits dimmer behind
-   the prompt. Scale 3.25 ≈ 30% larger than the previous 2.5×; the
-   visible orb (sphere + aura) reliably spans the full frame
-   height on every viewport. Opacity 0.5 keeps it as a presence
-   rather than a focal element. */
-.iv-stage.is-asleep .iv-orb {
-  transform: translate(-50%, -50%) scale(3.25);
-  opacity: 0.5;
-}
-/* During the morph-out, the orb travels from its position down to
-   the radial's welcome resting place AND scales up to match the
-   radial's full pixel size AND fades out — all in lockstep with
-   the .hero-glow's transition. Same easing + duration on both, so
-   they share a path and a size at every frame.
-   Math: orb is 506 px wide; radial natural width is ~814 px on a
-   440-px frame. End scale = 814 / 506 ≈ 1.61. */
-.screen[data-screen="intro-voice"].is-leaving .iv-orb {
+
+/* On welcome the orb sits ON the radial — same position, same
+   visible size — but transparent. The radial is what the user sees. */
+body[data-bg-state="welcome"] .iv-orb {
   top: 95%;
   opacity: 0;
   transform: translate(-50%, -50%) scale(1.61);
+}
+
+/* During the voice screen the orb owns the frame at its natural size. */
+body[data-bg-state="voice"] .iv-orb {
+  top: 50%;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* On any "top" state (name + onward) the orb has migrated UP to the
+   radial's resting place and faded out — visually replaced by the
+   radial that has appeared in the same spot at full size. */
+body[data-bg-state="top"] .iv-orb,
+body[data-bg-state="top-high"] .iv-orb,
+body[data-bg-state="top-dim"] .iv-orb {
+  top: 5%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.61);
+}
+
+/* For result + crisis screens the orb is just out of the picture. */
+body[data-bg-state="hidden"] .iv-orb,
+body[data-bg-state="building"] .iv-orb {
+  opacity: 0;
+}
+
+/* Radial mirror for the voice state — shrunk to the orb's visible
+   size at center, transparent. Combined with the rule above this
+   makes the morph feel like a single element changing form. */
+body[data-bg-state="voice"] .hero-glow {
+  top: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.622);
+}
+
+/* Override the base .hero-glow transition so transform animates at
+   the same 900 ms as top/opacity (base is 260 ms linear). Required
+   for the radial to scale in lockstep with the orb during the morph. */
+.hero-glow {
   transition:
-    top 1400ms cubic-bezier(.55, 0, .25, 1),
-    opacity 1400ms cubic-bezier(.55, 0, .25, 1),
-    transform 1400ms cubic-bezier(.55, 0, .25, 1);
+    top 900ms var(--bg-ease),
+    opacity 900ms var(--bg-ease),
+    transform 900ms var(--bg-ease);
 }
 
 /* Text container has a fixed height so subsequent phrases don't
@@ -285,7 +389,7 @@ body[data-bg-state="building"] .hero-glow {
   transform: translateY(0);
 }
 
-/* "Tap when you're ready" prompt. Lives perfectly centered on the
+/* "Tap to see it clearly" prompt. Lives perfectly centered on the
    screen because in the asleep state the orb fills the entire frame
    and the prompt sits on top of it. Black serif (Utopia Subhead),
    slightly larger than before, with a soft alpha-pulse animation
@@ -323,50 +427,6 @@ body[data-bg-state="building"] .hero-glow {
   cursor: pointer;
 }
 
-/* Whole intro screen fades out on transition. The orb has its own
-   fade timing above so it can disappear independently from the text. */
-.screen[data-screen="intro-voice"] {
-  transition: opacity 420ms cubic-bezier(.4, 0, .2, 1);
-}
-.screen[data-screen="intro-voice"].is-leaving {
-  opacity: 0;
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .iv-word, .iv-phrase, .iv-orb, .iv-prompt,
-  .screen[data-screen="intro-voice"] { transition: none; animation: none; }
-}
-
-/* ---------------------------------------------------------
-   Morph: orb-to-radial transition (v2 only).
-   The radial coexists with the orb during the morph. Both
-   start at the same position (orb's center) and the same
-   visible size, then both animate in lockstep down to the
-   welcome-radial position. While they travel together, the
-   radial fades from transparent → opaque and the orb fades
-   from opaque → transparent.
-   ---------------------------------------------------------
-   Math notes:
-     - Orb iframe is 506 px wide.
-     - Radial natural width is 185% of frame (~814 px on a
-       440-px frame). 506 / 814 ≈ 0.622 — so the radial,
-       scaled to 0.622, matches the orb's visible footprint
-       at the start of the morph.
-   --------------------------------------------------------- */
-body[data-bg-state="morphing"] .hero-glow {
-  top: calc(50% - 28px);
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.622);
-  transition: none;
-}
-/* When transitioning INTO welcome, both top, opacity, and the
-   transform (scale + translate) animate together with the same
-   easing curve. The orb iframe's CSS uses identical timing in
-   .is-leaving so the two visuals read as one. */
-body[data-bg-state="welcome"] .hero-glow {
-  transition:
-    top 1400ms cubic-bezier(.55, 0, .25, 1),
-    opacity 1400ms cubic-bezier(.55, 0, .25, 1),
-    transform 1400ms cubic-bezier(.55, 0, .25, 1);
+  .iv-word, .iv-phrase, .iv-orb, .iv-prompt, .hero-glow { transition: none; animation: none; }
 }

@@ -1,23 +1,26 @@
 // addiction-v2/intro-voice.js
 //
-// Plays a short Mia greeting on the first screen of v2.
+// Plays a short Mia greeting on the second screen of v2 — entered when
+// the user taps "Start the test" on the welcome screen.
 //
 // Architecture:
-//   - Orb runs in its own iframe (./orb.html). Non-interactive.
-//   - Text container has a fixed height; phrases overlap each other
-//     (absolute positioning) so the layout never shifts as new
-//     phrases come in.
-//   - Word reveal is driven from audio.currentTime — a brief stall in
-//     decoding never desyncs the captions from the voice.
-//   - Audio cannot autoplay on a cold page load (browsers block it).
-//     We try once; if blocked, an italic "tap when you're ready"
-//     prompt fades in over the text spot, and the WHOLE STAGE
-//     becomes the tap target.
-//   - On end-of-audio + brief pause, the orb morphs into the rose
-//     radial: a "morphing" body bg-state instantly places the radial
-//     at the orb's exact position, the orb fades out, then the body
-//     state changes to "welcome" — sliding the radial down to its
-//     bottom-anchored resting place.
+//   - Orb runs in its own iframe (./orb.html), mounted globally inside
+//     .bg-stage so it can morph between bg-state positions in lockstep
+//     with the .hero-glow radial. The pair reads as one element
+//     transforming through the flow (welcome → voice → top).
+//   - Caption text container has a fixed height; phrases overlap each
+//     other (absolute positioning) so the layout never shifts as new
+//     phrases come in. Word reveal is driven from audio.currentTime —
+//     a brief decode stall never desyncs captions from the voice.
+//   - Audio kickoff is bound to the welcome-button tap, which is a
+//     user gesture, so autoplay should always succeed. A "tap to see
+//     it clearly" prompt remains as a defensive fallback for the
+//     unlikely case the play() promise still rejects.
+//   - On end-of-audio + brief pause, the captions fade and we hand
+//     off to the name screen by re-clicking #welcomeNext. App.js's
+//     bound handler runs goTo('name'), which sets bg-state='top' —
+//     CSS picks that up and morphs the orb upward + fades it out
+//     while the radial morphs upward + fades in at the top.
 
 (function () {
   'use strict';
@@ -33,28 +36,30 @@
     { text: "You don't have to have it all figured out.",                          start: 12900, end: 14000 },
   ];
   // After audio ends, hold the last phrase for this long before
-  // starting the orb-to-radial morph. Keeps the closing line from
-  // feeling abrupt and gives the user time to read it.
+  // beginning the fade-out. Keeps the closing line from feeling abrupt.
   const HOLD_AFTER_END_MS   = 1400;
-  // The captions fade out FIRST (independent of the orb), with this
-  // much lead time before the orb starts moving. So the user reads
-  // the last line, the captions dissolve, and only then does the
-  // orb begin its descent.
+  // Captions fade out before we trigger goTo('name'), so the user sees
+  // the phrase dissolve and then the orb morph upward into the radial.
   const CAPTIONS_FADE_LEAD  = 550;
-  // Total morph duration — must match the CSS transitions on
-  // .iv-orb (.is-leaving) and body[data-bg-state="welcome"] .hero-glow.
-  const MORPH_DURATION_MS   = 1400;
-  // Prompt copy when autoplay is blocked. Capitalized and placed
-  // below the orb (see .iv-prompt CSS for positioning).
-  const PROMPT_TEXT         = 'Tap when you’re ready';
+  // Welcome content fade — matches the CSS transition on
+  // .screen[data-screen="welcome"].is-leaving > .screen-body.
+  const WELCOME_FADE_MS     = 350;
+  // Orb ↔ radial morph duration — matches the CSS transition
+  // (top/opacity/transform on .iv-orb and .hero-glow, both 900 ms).
+  const MORPH_MS            = 900;
+  // Defensive fallback prompt copy if audio.play() rejects despite the
+  // user gesture. Never expected to surface in the normal flow.
+  const PROMPT_TEXT         = 'Tap to see it clearly';
 
   // ----- DOM -----
-  const screen   = document.querySelector('.screen[data-screen="intro-voice"]');
+  const screen        = document.querySelector('.screen[data-screen="intro-voice"]');
   if (!screen) return;
-  const stage    = screen.querySelector('.iv-stage');
-  const textEl   = document.getElementById('ivText');
-  const orbFrame = document.getElementById('orbFrame');
-  if (!stage || !textEl) return;
+  const stage         = screen.querySelector('.iv-stage');
+  const textEl        = document.getElementById('ivText');
+  const orbFrame      = document.getElementById('orbFrame');
+  const welcomeBtn    = document.getElementById('welcomeNext');
+  const welcomeScreen = document.querySelector('.screen[data-screen="welcome"]');
+  if (!stage || !textEl || !welcomeBtn || !welcomeScreen) return;
 
   // Build the DOM ahead of time: one .iv-phrase per phrase, each
   // overlapping in the same spot; word-spans inside each. All
@@ -104,8 +109,8 @@
     // We do NOT fade phrases out before their `end` — instead we let
     // each phrase stay visible until the next phrase becomes active,
     // which gives the user the entire silent gap between phrases as
-    // read time. The last phrase stays visible until the end-of-audio
-    // handler fires the morph.
+    // read time. The last phrase stays visible until end-of-audio
+    // triggers the exit.
     let nextActive = -1;
     for (let i = phraseEls.length - 1; i >= 0; i--) {
       if (tMs >= phraseEls[i].def.start - 80) { nextActive = i; break; }
@@ -137,83 +142,107 @@
       endHandled = true;
       cancelAnimationFrame(raf);
       // Reveal any remaining words instantly so nothing's left
-      // half-visible during the morph-out.
+      // half-visible during the fade-out.
       phraseEls.forEach((ph, pi) => {
         ph.words.forEach((w, wi) => {
           const key = pi + ':' + wi;
           if (!revealed.has(key)) { w.classList.add('is-revealed'); revealed.add(key); }
         });
       });
-      setTimeout(beginMorph, HOLD_AFTER_END_MS);
+      setTimeout(exitToName, HOLD_AFTER_END_MS);
     }
   }
 
-  // ----- Orb-to-radial morph -----
-  // Single coordinated transition. The radial coexists with the orb
-  // during the morph: it starts at the orb's position, scaled to
-  // match the orb's visible size, fully transparent. The orb starts
-  // at its current position, full size, fully opaque.
-  //
-  // Then both elements run the same 1400 ms transition with the same
-  // easing curve:
-  //   - top:        orb-position → welcome-position (~95%)
-  //   - opacity:    radial 0→1, orb 1→0
-  //   - scale:      radial 0.565→1 (radial grows; orb stays its size
-  //                 since scaling an iframe blurs its three.js canvas)
-  //
-  // Because both are animated from the same starting position with
-  // the same easing, the eye reads them as a single element changing
-  // shape mid-flight. Once the transition lands, the radial is at
-  // the welcome position and the orb is invisible — we drop the
-  // intro-voice screen and reveal welcome.
-  function beginMorph() {
-    // Step 0. Fade the captions FIRST so they're gone before the
-    // orb starts moving. If we let them fade together, the user
-    // sees a phrase still drifting on screen as the orb slides
-    // down and that reads as messy.
+  // ----- Exit handoff -----
+  // Fade captions, then re-click #welcomeNext so app.js's existing
+  // bound handler runs goTo('name'). goTo sets bg-state='top', which
+  // triggers the orb ↔ radial upward morph (CSS, 900 ms). The
+  // voiceComplete flag tells our capture-phase interceptor below to
+  // stay out of the way for that synthetic click.
+  let voiceStarted  = false;
+  let voiceComplete = false;
+
+  function exitToName() {
     if (textEl) textEl.classList.add('is-leaving');
-
     setTimeout(() => {
-      // 1. Snap the radial to the morphing state (no transition, so it
-      //    appears at the orb's spot scaled-to-orb-size, transparent).
-      document.body.setAttribute('data-bg-state', 'morphing');
-
-      // 2. Force the morphing styles to commit before triggering the
-      //    welcome transition. Two rAFs is the standard belt-and-braces
-      //    way to make sure the previous state was painted.
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        // 3. Trigger the unified transition: radial → welcome state,
-        //    orb → .is-leaving. Same duration/easing in CSS.
-        document.body.setAttribute('data-bg-state', 'welcome');
-        screen.classList.add('is-leaving');
-
-        // 4. After the transition completes, swap which screen is
-        //    .active and free orb GPU resources.
-        setTimeout(() => {
-          screen.classList.remove('active');
-          const welcome = document.querySelector('.screen[data-screen="welcome"]');
-          if (welcome) welcome.classList.add('active');
-          if (orbFrame && orbFrame.parentNode) orbFrame.parentNode.removeChild(orbFrame);
-        }, MORPH_DURATION_MS + 60);
-      }));
+      voiceComplete = true;
+      // Hand off to app.js. goTo('name') swaps active screens, sets
+      // bg-state='top' (which triggers the upward morph: orb floats
+      // up + scales + fades, radial floats up + scales in + fades in),
+      // shows progress + back chrome, and focuses the name input.
+      welcomeBtn.click();
+      // After the morph completes, free the orb's three.js context.
+      // The orb is opacity:0 by then, so removing it is invisible.
+      setTimeout(() => {
+        if (orbFrame && orbFrame.parentNode) {
+          orbFrame.parentNode.removeChild(orbFrame);
+        }
+      }, MORPH_MS + 60);
     }, CAPTIONS_FADE_LEAD);
   }
 
-  // ----- Intriguing prompt fallback -----
-  // If autoplay is blocked, surface a soft italic invitation in the
-  // same spot where the script will appear. The whole stage becomes
-  // tappable. On tap, the prompt fades and audio starts.
+  // ----- Welcome → intro-voice handoff -----
+  // Capture-phase listener intercepts the welcome button tap before
+  // app.js's bubble-phase handler (which would otherwise navigate
+  // straight to 'name'). We start the morph + voice here; once it
+  // ends, exitToName() re-clicks the button with voiceComplete=true
+  // so app.js can run normally.
+  function startIntroVoice() {
+    voiceStarted = true;
+    // Fade welcome content out (CSS handles the 350 ms transition).
+    welcomeScreen.classList.add('is-leaving');
+    // Trigger the morph: bg-state='voice' makes the radial shrink down
+    // to the orb's footprint at center and fade out, while the orb
+    // (which sat at the radial position, transparent) moves to center
+    // at its natural size and fades in. Both run for 900 ms in lockstep.
+    document.body.setAttribute('data-bg-state', 'voice');
+
+    // Once welcome content has dimmed, swap which screen is .active
+    // and start the audio. The orb is still mid-morph at this point —
+    // the voice begins and the orb settles into place around the same
+    // moment, which feels natural.
+    setTimeout(() => {
+      welcomeScreen.classList.remove('active', 'is-leaving');
+      screen.classList.add('active');
+
+      const p = audio.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          raf = requestAnimationFrame(tick);
+        }).catch(() => {
+          showPrompt();
+        });
+      } else {
+        raf = requestAnimationFrame(tick);
+      }
+    }, WELCOME_FADE_MS);
+  }
+
+  welcomeBtn.addEventListener('click', (e) => {
+    // The synthetic click we fire after the voice ends — defer to
+    // app.js so goTo('name') runs normally.
+    if (voiceComplete) return;
+    // Any other click during voice playback (welcome is hidden so
+    // this shouldn't happen, but be defensive): block app.js.
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    if (voiceStarted) return;
+    startIntroVoice();
+  }, { capture: true });
+
+  // ----- Defensive prompt fallback -----
+  // Only reached if audio.play() rejects despite the user gesture
+  // (e.g. an exotic autoplay policy). Surfaces a tap target so the
+  // user can retry.
   let promptEl = null;
   function showPrompt() {
     if (promptEl) return;
+    stage.classList.add('is-asleep');
     promptEl = document.createElement('div');
     promptEl.className = 'iv-prompt';
     promptEl.textContent = PROMPT_TEXT;
     textEl.parentNode.insertBefore(promptEl, textEl);
-    // Whole stage is tappable while prompt is shown.
     stage.dataset.tappable = 'true';
-    // Fade-in on the next frame — instant for the user, but still
-    // a smooth opacity transition.
     requestAnimationFrame(() => promptEl.classList.add('is-shown'));
 
     function dismiss() {
@@ -221,56 +250,11 @@
       stage.removeEventListener('touchend', dismiss);
       promptEl.classList.remove('is-shown');
       stage.dataset.tappable = '';
-      // Wake the orb: scales down from screen-filling 2.5× to its
-      // natural size and ramps opacity to full. CSS handles the
-      // transition (~1.1s).
       stage.classList.remove('is-asleep');
-      // Try to play; on success, kick the sync loop. We DO NOT
-      // surface a second fallback if this also fails — at this
-      // point the user has tapped, so it should always work.
       audio.play().catch(() => {});
       raf = requestAnimationFrame(tick);
     }
     stage.addEventListener('click', dismiss);
     stage.addEventListener('touchend', dismiss);
-  }
-
-  // ----- Kickoff -----
-  // Try audio playback as soon as the file is buffered. We don't
-  // wait for the orb's grow-in to finish — if autoplay is blocked
-  // (the usual case), we want the prompt to surface immediately
-  // so the user has a clear cue from the very first second.
-  function startWhenReady() {
-    tryStart();
-  }
-  function tryStart() {
-    const p = audio.play();
-    if (p && typeof p.then === 'function') {
-      p.then(() => {
-        // Autoplay worked. Wake the orb (CSS scales it down) and
-        // run the caption sync loop alongside the audio.
-        stage.classList.remove('is-asleep');
-        raf = requestAnimationFrame(tick);
-      }).catch(() => {
-        // Autoplay blocked — show the prompt and keep the orb
-        // asleep until the user taps. dismiss() handles the rest.
-        showPrompt();
-      });
-    } else {
-      // Older browser without play()-returns-promise. Best-effort:
-      // assume it played, wake the orb, run captions.
-      stage.classList.remove('is-asleep');
-      raf = requestAnimationFrame(tick);
-    }
-  }
-
-  if (audio.readyState >= 2) {
-    startWhenReady();
-  } else {
-    audio.addEventListener('canplaythrough', startWhenReady, { once: true });
-    // Hard fallback: if loading takes too long, start anyway after
-    // 2.5s so we don't sit forever waiting for an asset that
-    // never arrives.
-    setTimeout(() => { if (!raf && !audio.paused === false) startWhenReady(); }, 2500);
   }
 })();
